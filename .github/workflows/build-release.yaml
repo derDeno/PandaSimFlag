@@ -1,0 +1,107 @@
+name: Build PandaSimFlag and draft release
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install PlatformIO
+        run: python -m pip install platformio==6.2.0
+
+      - name: Read firmware and filesystem versions
+        id: versions
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          source = Path('src/main.cpp').read_text(encoding='utf-8')
+          match = re.search(r'\bVERSION\s*\[\s*\]\s*=\s*"([^"]+)"', source)
+          if not match:
+              raise SystemExit('Could not read VERSION from src/main.cpp')
+          firmware = match.group(1)
+          filesystem = Path('data/version.txt').read_text(encoding='utf-8').strip()
+          version_pattern = re.compile(r'\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?\Z')
+          for name, version in [('firmware', firmware), ('filesystem', filesystem)]:
+              if not version_pattern.fullmatch(version):
+                  raise SystemExit(f'Invalid {name} version: {version!r}')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              output.write(f'firmware={firmware}\nfilesystem={filesystem}\n')
+          PY
+
+      - name: Build firmware and LittleFS image
+        run: |
+          pio run -e pandasimflag
+          pio run -e pandasimflag -t buildfs
+
+      - name: Package OTA and full flash images
+        env:
+          FIRMWARE_VERSION: ${{ steps.versions.outputs.firmware }}
+          FILESYSTEM_VERSION: ${{ steps.versions.outputs.filesystem }}
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          build = Path('.pio/build/pandasimflag')
+          output = Path('release')
+          output.mkdir()
+          firmware = build / 'firmware.bin'
+          filesystem = build / 'littlefs.bin'
+          bootloader = build / 'bootloader.bin'
+          partitions = build / 'partitions.bin'
+          boot_app0 = Path.home() / '.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin'
+          esptool = Path.home() / '.platformio/packages/tool-esptoolpy/esptool.py'
+          inputs = [firmware, filesystem, bootloader, partitions, boot_app0, esptool]
+          missing = [str(path) for path in inputs if not path.is_file()]
+          if missing:
+              raise SystemExit(f'Missing build inputs: {", ".join(missing)}')
+          if firmware.stat().st_size > 0x2F0000 or filesystem.stat().st_size != 0x200000:
+              raise SystemExit('Firmware or filesystem image does not fit its partition')
+
+          firmware_ota = output / f"PandaSimFlag-firmware-v{os.environ['FIRMWARE_VERSION']}-ota.bin"
+          filesystem_ota = output / f"PandaSimFlag-filesystem-v{os.environ['FILESYSTEM_VERSION']}-ota.bin"
+          firmware_ota.write_bytes(firmware.read_bytes())
+          filesystem_ota.write_bytes(filesystem.read_bytes())
+          full_image = output / f"PandaSimFlag-v{os.environ['FIRMWARE_VERSION']}-full.bin"
+          subprocess.run([
+              sys.executable, str(esptool), '--chip', 'esp32s3', 'merge_bin',
+              '--output', str(full_image), '--flash_mode', 'dio', '--flash_size', '8MB',
+              '--fill-flash-size', '8MB',
+              '0x0', str(bootloader),
+              '0x8000', str(partitions),
+              '0xe000', str(boot_app0),
+              '0x10000', str(firmware),
+              '0x5f0000', str(filesystem),
+          ], check=True)
+          if full_image.stat().st_size != 8 * 1024 * 1024:
+              raise SystemExit('Full flash image is not 8 MiB')
+          PY
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FIRMWARE_VERSION: ${{ steps.versions.outputs.firmware }}
+        run: |
+          gh release create "v${FIRMWARE_VERSION}" release/* \
+            --draft \
+            --title "PandaSimFlag v${FIRMWARE_VERSION}" \
+            --generate-notes \
+            --target "${GITHUB_SHA}"
