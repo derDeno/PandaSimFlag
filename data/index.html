@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>PandaSimFlag</title>
+  <style>
+    :root{font:16px/1.5 system-ui,sans-serif;color:#eef2f7;background:#111827;font-synthesis:none}
+    *{box-sizing:border-box}body{max-width:1050px;min-height:100vh;margin:0 auto;padding:24px;display:flex;flex-direction:column}main{flex:1}
+    h1,h2,p{margin-top:0}h1{margin-bottom:2px;font-size:1.8rem}h2{font-size:1.15rem;margin-bottom:14px}
+    .muted{color:#abb6c5}.small{font-size:.9rem}.header{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}.header-actions{display:flex;align-items:center;gap:14px}
+    .nav{display:flex;gap:5px}.nav a{color:#cbd5e1;text-decoration:none;border-radius:7px;padding:6px 11px}.nav a:hover{background:#334155}.nav a[aria-current="page"]{background:#334155;color:#fff}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{min-width:0;background:#1f2937;border:1px solid #374151;border-radius:14px;padding:20px}
+    [hidden]{display:none!important}.wide{grid-column:1/-1}.notice{display:none;border:1px solid #64748b;background:#253449;border-radius:10px;padding:14px;margin-bottom:16px}.notice.visible{display:block}
+    .setup-notice{border-color:#f59e0b;background:#392d16}.setup-notice strong{color:#fcd34d}
+    .wifi-details summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;font-size:1.15rem;font-weight:700}.wifi-details summary::-webkit-details-marker{display:none}.wifi-details summary:focus-visible{outline:3px solid #60a5fa;outline-offset:4px;border-radius:4px}
+    .expand-icon{width:10px;height:10px;flex:none;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s ease}.wifi-details[open] .expand-icon{transform:rotate(45deg)}.wifi-content{margin-top:18px}
+    .status-groups{display:grid;gap:15px}.status-group+.status-group{border-top:1px solid #374151;padding-top:13px}.status-group h3{margin:0 0 8px;color:#94a3b8;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
+    .device-grid{display:grid;grid-template-columns:140px minmax(0,1fr);gap:8px 12px;margin:0}.device-grid dt{color:#abb6c5}.device-grid dd{margin:0;overflow-wrap:anywhere}
+    .matrix{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;width:min(100%,340px);margin:18px auto 20px;padding:12px;background:#0b1018;border-radius:12px}
+    .display-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:28px}.display-controls label{margin:0 0 8px}.display-controls select{width:100%;max-width:none}.preview-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}.preview-actions button{width:100%}
+    .pixel{aspect-ratio:1;border-radius:50%;background:#000;box-shadow:0 0 7px currentColor}.buttons{display:flex;flex-wrap:wrap;gap:8px}
+    button,input,select{font:inherit;color:inherit;background:#111827;border:1px solid #4b5563;border-radius:8px;padding:10px}
+    button{cursor:pointer;background:#334155}button:hover{background:#475569}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #60a5fa;outline-offset:2px}
+    button:disabled{opacity:.6;cursor:wait}label{display:block;margin:12px 0 5px;font-weight:600}input,select{width:100%}
+    .primary{background:#2563eb;border-color:#3b82f6}.primary:hover{background:#1d4ed8}.form-row{margin:0 0 12px}
+    #device-form .form-row{margin-bottom:32px}
+     #wifi-form .form-row{margin-bottom:32px}
+      #game-form .form-row{margin-bottom:32px}
+      #game-form :disabled{opacity:.55;cursor:not-allowed}
+     .checkbox-label{display:flex;align-items:center;gap:10px}.checkbox-label input{width:auto;margin:0}
+    .danger{background:#b91c1c;border-color:#ef4444}.danger:hover{background:#991b1b}
+    dialog{width:min(480px,calc(100% - 32px));border:1px solid #4b5563;border-radius:14px;padding:22px;background:#1f2937;color:#eef2f7}dialog::backdrop{background:#0009}dialog h2{margin:0 0 12px}dialog .buttons{justify-content:flex-end;margin-top:20px}
+    .inline{display:flex;gap:10px;align-items:center}.inline select{max-width:180px}.code{display:block;padding:12px;background:#111827;border-radius:8px;overflow-wrap:anywhere;color:#c4b5fd}
+    .footer{display:flex;justify-content:center;margin:24px 0 4px}.footer a{display:inline-flex;align-items:center;gap:8px;color:#abb6c5;text-decoration:none}.footer a:hover{color:#fff}.footer svg{width:20px;height:20px;fill:currentColor}
+    .error{color:#fca5a5!important}.help{margin:10px 0 0}
+    @media(max-width:700px){body{padding:16px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.header{align-items:flex-start;flex-direction:column}.header-actions{width:100%;justify-content:space-between;flex-wrap:wrap}.device-grid{grid-template-columns:120px minmax(0,1fr)}}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div><h1>PandaSimFlag</h1></div>
+    <div class="header-actions">
+      <nav class="nav" aria-label="Main menu"><a href="#home" data-page="home" aria-current="page">Home</a><a href="#settings" data-page="settings">Settings</a></nav>
+    </div>
+  </header>
+
+  <main id="home-page">
+  <section id="setup-notice" class="notice setup-notice" aria-live="polite">
+    <strong>Wi-Fi setup mode</strong>
+    <p class="help">You are connected to the device’s open setup network. Choose Settings above to enter your home Wi-Fi. The device will save it and restart. If it cannot connect, it will return to this setup network.</p>
+    <p class="help">Setup network: <b id="ap-name">PandaSimFlag-XXXX</b> · Device page: <b id="ap-address">http://192.168.4.1</b></p>
+  </section>
+  <section id="connected-notice" class="notice" aria-live="polite">
+    <strong>Device is on your Wi-Fi.</strong>
+    <span> Open its page at <b id="connected-host">pandasimflag.local</b>. You can change networks in Settings; saving restarts the device.</span>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Device status</h2>
+      <div class="status-groups">
+        <section class="status-group"><h3>Connection</h3><dl class="device-grid"><dt>Mode</dt><dd id="mode">—</dd><dt>Current game</dt><dd id="game">Not reported</dd></dl></section>
+        <section class="status-group"><h3>Network</h3><dl class="device-grid"><dt>Wi-Fi</dt><dd id="network">—</dd><dt>Signal strength</dt><dd id="signal">—</dd><dt>Hostname</dt><dd id="host">—</dd><dt>MAC address</dt><dd id="mac">—</dd></dl></section>
+        <section class="status-group"><h3>Device &amp; power</h3><dl class="device-grid"><dt>Firmware version</dt><dd id="version">—</dd><dt>Filesystem version</dt><dd id="filesystem-version">—</dd><dt>USB power</dt><dd id="power">—</dd><dt>LED limit</dt><dd id="power-cap">—</dd><dt>Uptime</dt><dd id="uptime">—</dd></dl></section>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Live matrix</h2>
+      <div class="matrix" id="matrix" role="img" aria-label="Live 8 by 8 LED matrix"></div>
+      <div class="display-controls">
+        <div><label for="display-select">Display</label><select id="display-select"><optgroup label="Flags"><option value="green">Green</option><option value="yellow">Yellow</option><option value="blue">Blue</option><option value="red">Red</option><option value="white">White</option><option value="black">Black</option><option value="blackwhite">Black/white</option><option value="doubleyellow">Double yellow</option><option value="checkered">Checkered</option><option value="rain">Rain</option></optgroup><optgroup label="Numbers"><option value="gear-1">1</option><option value="gear-2">2</option><option value="gear-3">3</option><option value="gear-4">4</option><option value="gear-5">5</option><option value="gear-6">6</option><option value="gear-7">7</option><option value="gear-8">8</option><option value="gear-9">9</option><option value="gear-N">N</option><option value="gear-R">R</option></optgroup></select></div>
+        <div id="animation-control"><label for="animation">Animation</label><select id="animation"><option value="none">None</option><option value="blink">Blink</option></select></div>
+      </div>
+      <div class="preview-actions"><button id="preview-button" class="primary" type="button">Preview</button><button id="stop-preview-button" type="button" disabled>Stop</button></div>
+      <p id="home-message" class="help" role="status" aria-live="polite"></p>
+    </section>
+
+  </div>
+  </main>
+
+  <main id="settings-page" hidden>
+    <div class="grid">
+    <section class="card wide" id="wifi-card">
+      <details class="wifi-details">
+        <summary><span>Wi-Fi setup</span><span class="expand-icon" aria-hidden="true"></span></summary>
+        <div class="wifi-content">
+          <p id="wifi-description" class="muted">Enter the Wi-Fi network this device should join.</p>
+          <form id="wifi-form">
+            <div class="form-row"><label for="ssid">Network name (SSID)</label><input id="ssid" name="ssid" maxlength="32" autocomplete="ssid" required></div>
+            <div class="form-row"><label for="password">Password</label><input id="password" name="password" type="password" maxlength="63" autocomplete="new-password" aria-describedby="password-help"><div id="password-help" class="muted small">Leave blank for an open Wi-Fi network.</div></div>
+            <button id="wifi-submit" class="primary" type="submit">Save Wi-Fi and restart</button>
+            <p id="wifi-message" class="help" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </details>
+    </section>
+    <section class="card wide" id="device-card">
+      <details class="wifi-details">
+        <summary><span>Device settings</span><span class="expand-icon" aria-hidden="true"></span></summary>
+        <div class="wifi-content">
+          <form id="device-form">
+            <div class="form-row"><label for="device-hostname">Hostname</label><input id="device-hostname" name="hostname" maxlength="30" pattern="[A-Za-z0-9]+([A-Za-z0-9-]*[A-Za-z0-9])?" required aria-describedby="hostname-help"><div id="hostname-help" class="muted small">Letters, numbers, and hyphens; the device is available at .local.</div></div>
+            <div class="form-row"><label for="connection-mode">Connection mode</label><select id="connection-mode" name="connectionMode"><option value="wifi">Wi-Fi</option><option value="usb">USB</option></select></div>
+            <div class="form-row"><label for="led-power">LED power: <output id="led-power-value" for="led-power">25%</output></label><input id="led-power" name="ledPower" type="range" min="0" max="100" step="1" value="25"></div>
+            <button id="device-submit" class="primary" type="submit">Save device settings</button>
+            <p id="device-message" class="help" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </details>
+    </section>
+    <section class="card wide" id="game-card">
+      <details class="wifi-details">
+        <summary><span>Game settings</span><span class="expand-icon" aria-hidden="true"></span></summary>
+        <div class="wifi-content">
+          <p class="muted">Choose the game that sends telemetry to the device.</p>
+          <form id="game-form">
+            <div class="form-row"><label for="wifi-game">Wi-Fi game</label><select id="wifi-game" name="wifiGame"><option value="">Select a game</option><option value="gt7">Gran Turismo 7</option><option value="f1-2024">F1 2024</option><option value="f1-2025">F1 2025</option></select></div>
+            <div class="form-row" id="gt7-ip-row" hidden><label for="gt7-console-ip">GT7 console IP address</label><input id="gt7-console-ip" name="gt7ConsoleIp" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" pattern="([0-9]{1,3}\.){3}[0-9]{1,3}"><div class="muted small">Enter the PlayStation’s IP address so the device can request GT7 telemetry.</div></div>
+            <div class="form-row"><label for="display-type">Display option</label><select id="display-type" name="displayType"><option value="flag">Flag</option><option value="gear">Gear</option><option value="flaggear">Flag &amp; gear</option></select></div>
+            <div class="form-row" id="normal-flags-blink-row"><label class="checkbox-label" for="normal-flags-blink"><input id="normal-flags-blink" name="normalFlagsBlink" type="checkbox">Blink normal flags</label></div>
+            <div class="form-row" id="normal-flag-period-row" hidden><label for="normal-flag-period">Blink interval: <output id="normal-flag-period-value" for="normal-flag-period">250 ms</output></label><input id="normal-flag-period" name="normalFlagBlinkPeriod" type="range" min="20" max="2000" step="10" value="250"></div>
+            <button id="game-submit" class="primary" type="submit">Save game settings</button>
+            <p id="game-message" class="help" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </details>
+    </section>
+    <section class="card wide" id="update-card">
+      <details class="wifi-details">
+        <summary><span>Firmware update</span><span class="expand-icon" aria-hidden="true"></span></summary>
+        <div class="wifi-content">
+          <p class="muted">Install firmware or WebUI filesystem images (.bin). Keep the device powered until it restarts.</p>
+          <form id="update-form">
+            <div class="form-row"><label for="firmware-file">Firmware file</label><input id="firmware-file" name="firmware" type="file" accept=".bin,application/octet-stream" required></div>
+            <button id="update-submit" class="primary" type="submit">Upload and install</button>
+          </form>
+          <form id="filesystem-update-form">
+            <div class="form-row"><label for="filesystem-file">Filesystem file</label><input id="filesystem-file" name="filesystem" type="file" accept=".bin,application/octet-stream" required></div>
+            <button id="filesystem-update-submit" class="primary" type="submit">Upload filesystem</button>
+          </form>
+          <p id="update-message" class="help" role="status" aria-live="polite"></p>
+          <p id="filesystem-update-message" class="help" role="status" aria-live="polite"></p>
+        </div>
+      </details>
+    </section>
+    <section class="card wide" id="reset-card">
+      <details class="wifi-details">
+        <summary><span>Reset device</span><span class="expand-icon" aria-hidden="true"></span></summary>
+        <div class="wifi-content">
+          <p class="muted">Warning: this erases all saved device and Wi-Fi settings. The device will reboot into its open setup network.</p>
+          <button id="reset-open" class="danger" type="button">Reset device</button>
+        </div>
+      </details>
+    </section>
+    </div>
+  </main>
+  <dialog id="reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
+    <h2 id="reset-title">Reset this device?</h2>
+    <p id="reset-description">This will erase all settings and cannot be undone.</p>
+    <p id="reset-message" class="help" role="status" aria-live="polite"></p>
+    <div class="buttons"><button id="reset-cancel" type="button">Cancel</button><button id="reset-confirm" class="danger" type="button">Erase settings and reboot</button></div>
+  </dialog>
+  <footer class="footer"><a href="https://github.com/derDeno/PandaBoards" target="_blank" rel="noopener noreferrer" aria-label="PandaSimFlag on GitHub">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.53v-2.06c-3.1.67-3.76-1.32-3.76-1.32-.5-1.28-1.23-1.62-1.23-1.62-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 .1.76 2.47 3.93 1.75.1-.72.39-1.22.7-1.5-2.48-.28-5.09-1.24-5.09-5.52 0-1.22.44-2.21 1.15-2.99-.12-.28-.5-1.42.11-2.95 0 0 .94-.3 3.05 1.14a10.6 10.6 0 0 1 5.55 0c2.11-1.44 3.05-1.14 3.05-1.14.61 1.53.23 2.67.11 2.95.72.78 1.15 1.77 1.15 2.99 0 4.29-2.61 5.23-5.1 5.51.4.34.75 1.02.75 2.06V22c0 .29.2.63.76.52A11.1 11.1 0 0 0 12 .9Z"/></svg>
+    <span>View on GitHub</span>
+  </a></footer>
+  <script>
+    const $ = selector => document.querySelector(selector);
+    const matrix = $('#matrix');
+    const formatLedPower = value => Number(value) === 0 ? 'Off' : `${value}%`;
+    const pixels = Array.from({length: 64}, () => {
+      const pixel = document.createElement('i');
+      pixel.className = 'pixel';
+      matrix.append(pixel);
+      return pixel;
+    });
+    let previewTimer = 0;
+    let previewActive = false;
+    let previewColors = [];
+    let previewAlternate = null;
+    let previewAnimation = 'none';
+    let previewPhase = false;
+    let previewRainOffset = 0;
+    let activePreviewDisplay = 'green';
+    let savedNormalFlagsBlink = false;
+    let savedNormalFlagBlinkPeriod = 250;
+    const gearPatterns = {
+      'gear-1':'00011000,00111000,00011000,00011000,00011000,00011000,00111100,00111100',
+      'gear-2':'00111100,01100110,00000110,00011100,00110000,01100000,01111110,01111110',
+      'gear-3':'00111100,01100110,00000110,00011100,00000110,01100110,00111100,00111100',
+      'gear-4':'00011000,00111000,01101000,01001000,01111110,00001000,00001000,00001000',
+      'gear-5':'01111110,01100000,01111100,00000110,00000110,01100110,00111100,00111100',
+      'gear-6':'00111100,01100000,01100000,01111100,01100110,01100110,00111100,00111100',
+      'gear-7':'01111110,01111110,00000110,00001100,00011000,00110000,00110000,00110000',
+      'gear-8':'00111100,01100110,01100110,00111100,01100110,01100110,00111100,00111100',
+      'gear-9':'00111100,01100110,01100110,00111110,00000110,00000110,01100110,00111100',
+      'gear-N':'01100011,01110011,01111011,01101111,01100111,01100011,01100011,01100011',
+      'gear-R':'01111100,01100110,01100110,01111100,01111000,01101100,01100110,01100011'
+    };
+
+    function drawPreview(colors) {
+      pixels.forEach((pixel, index) => {
+        const color = colors[index];
+        pixel.style.backgroundColor = `rgb(${color})`;
+        pixel.style.color = `rgb(${color})`;
+      });
+    }
+
+    function displayFrames(display) {
+      const black = [0, 0, 0], yellow = [255, 255, 0], white = [255, 255, 255];
+      if (gearPatterns[display]) return {primary: gearPatterns[display].split(',').join('').split('').map(bit => bit === '1' ? white : black)};
+      if (display === 'rain') return {primary: rainPattern(0), animation: 'rain'};
+      if (display === 'doubleyellow') return {
+        primary: Array.from({length: 64}, (_, i) => Math.floor(i / 8) + i % 8 < 7 ? yellow : black),
+        alternate: Array.from({length: 64}, (_, i) => Math.floor(i / 8) + i % 8 >= 7 ? yellow : black),
+        animation: 'doubleyellow'
+      };
+      if (display === 'checkered') return {
+        primary: Array.from({length: 64}, (_, i) => (Math.floor(i / 8) + i % 8) % 2 ? black : white),
+        animation: 'invert'
+      };
+      if (display === 'blackwhite') return {
+        primary: Array.from({length: 64}, (_, i) => Math.floor(i / 8) + i % 8 < 7 ? black : white),
+        animation: 'invert'
+      };
+      const colors = {green:[0,255,0],yellow,blue:[0,0,255],red:[255,0,0],white,black};
+      return {primary:Array(64).fill(colors[display] || black)};
+    }
+
+    function rainPattern(offset) {
+      const colors = Array.from({length:64}, () => [0,0,0]);
+      const dropX = [0,5,2], dropY = [0,0,4];
+      const dropPixels = [[0,1],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]];
+      for (let drop = 0; drop < 3; drop++) for (const [row, col] of dropPixels) {
+        colors[((dropY[drop] + offset + row) % 8) * 8 + dropX[drop] + col] = [0,150,255];
+      }
+      return colors;
+    }
+
+    function renderLocalPreview() {
+      const colors = previewAnimation === 'rain' ? rainPattern(previewRainOffset)
+        : previewPhase && previewAnimation === 'blink' ? Array.from({length:64}, () => [0,0,0])
+        : previewPhase && previewAnimation === 'invert' ? previewColors.map(color => color.map(channel => 255 - channel))
+        : previewPhase && previewAlternate ? previewAlternate : previewColors;
+      drawPreview(colors);
+    }
+
+    function updateAnimationControl() {
+      const fixed = ['doubleyellow', 'checkered', 'blackwhite', 'rain'].includes($('#display-select').value);
+      $('#animation').disabled = fixed;
+      if (fixed) $('#animation').value = 'none';
+    }
+
+    function stopPreviewLocally() {
+      clearInterval(previewTimer);
+      previewTimer = 0;
+      previewActive = false;
+      previewPhase = false;
+      previewRainOffset = 0;
+      $('#preview-button').disabled = false;
+      $('#stop-preview-button').disabled = true;
+      previewColors = Array.from({length:64}, () => [0,0,0]);
+      previewAlternate = null;
+      drawPreview(previewColors);
+    }
+
+    function startPreview(display) {
+      const frames = displayFrames(display);
+      const normalFlag = ['green', 'yellow', 'blue', 'red', 'white', 'black'].includes(display);
+      clearInterval(previewTimer);
+      activePreviewDisplay = display;
+      previewColors = frames.primary;
+      previewAlternate = frames.alternate || null;
+      previewAnimation = frames.animation || (savedNormalFlagsBlink && normalFlag ? 'blink' : $('#animation').value);
+      previewPhase = false;
+      previewActive = true;
+      $('#preview-button').disabled = true;
+      $('#stop-preview-button').disabled = false;
+      renderLocalPreview();
+       if (previewAnimation !== 'none' || previewAlternate) previewTimer = setInterval(() => {
+         if (previewAnimation === 'rain') previewRainOffset = (previewRainOffset + 1) % 8;
+         else previewPhase = !previewPhase;
+        renderLocalPreview();
+      }, normalFlag ? (savedNormalFlagBlinkPeriod || 250) : 250);
+    }
+
+    async function send(path, body) {
+      const response = await fetch(path, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        let message = text || response.statusText;
+        try { message = JSON.parse(text).error || message; } catch {}
+        throw new Error(message);
+      }
+    }
+
+    function showPage() {
+      const page = location.hash === '#settings' ? 'settings' : 'home';
+      $('#home-page').hidden = page !== 'home';
+      $('#settings-page').hidden = page !== 'settings';
+      document.querySelectorAll('[data-page]').forEach(link => {
+        if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch('/api/state', {cache: 'no-store'});
+        if (!response.ok) throw new Error('Device status unavailable');
+        const state = await response.json();
+        const isAp = state.mode === 'ap';
+        $('#setup-notice').classList.toggle('visible', isAp);
+        $('#connected-notice').classList.toggle('visible', !isAp && state.connected);
+        $('#mode').textContent = state.connectionMode;
+        $('#game').textContent = state.game;
+        $('#network').textContent = state.ssid || '—';
+        $('#host').textContent = state.hostname;
+        $('#signal').textContent = isAp ? 'Setup network' : `${state.rssi} dBm`;
+        $('#version').textContent = state.version;
+        $('#filesystem-version').textContent = state.filesystemVersion || 'unknown';
+        $('#power').textContent = `${state.powerController}: ${state.usbCurrentMode}`;
+        $('#power-cap').textContent = `${state.ledLimitMa} mA`;
+        $('#uptime').textContent = `${Math.floor(state.uptime / 3600)}h ${Math.floor(state.uptime / 60) % 60}m`;
+        $('#mac').textContent = state.mac;
+        if (!$('#device-form').contains(document.activeElement)) {
+          $('#device-hostname').value = state.deviceHostname;
+          $('#connection-mode').value = state.inputMode;
+          $('#led-power').value = state.ledPowerPercent;
+          $('#led-power-value').value = formatLedPower(state.ledPowerPercent);
+        }
+        if (!$('#game-form').contains(document.activeElement)) {
+          $('#wifi-game').value = state.wifiGame;
+          $('#gt7-console-ip').value = state.gt7ConsoleIp || '';
+          $('#display-type').value = state.displayType;
+          updateDisplayOptions();
+          savedNormalFlagsBlink = Boolean(state.normalFlagsBlink);
+          savedNormalFlagBlinkPeriod = Number(state.normalFlagBlinkPeriod) || 250;
+          $('#normal-flags-blink').checked = savedNormalFlagsBlink;
+          $('#normal-flag-period').value = savedNormalFlagBlinkPeriod;
+          $('#normal-flag-period-value').value = `${savedNormalFlagBlinkPeriod} ms`;
+          updateNormalFlagsVisibility();
+        }
+        $('#ap-name').textContent = state.ssid;
+        $('#ap-address').textContent = `http://${state.ip}`;
+        $('#connected-host').textContent = state.hostname;
+        $('#wifi-description').textContent = isAp
+          ? 'Connect the device to your home Wi-Fi to use it on your network.'
+          : 'Change the network this device uses. Saving will restart it.';
+        if (!previewActive) drawPreview(Array.from({length: 64}, (_, i) => state.pixels.slice(i * 3, i * 3 + 3)));
+      } catch {
+      }
+      updateGt7IpVisibility();
+      updateGameSettingsAvailability();
+    }
+
+    $('#preview-button').addEventListener('click', async () => {
+      $('#home-message').textContent = '';
+      const display = $('#display-select').value;
+      startPreview(display);
+      try {
+        const period = ['green', 'yellow', 'blue', 'red', 'white', 'black'].includes(display)
+          ? (savedNormalFlagBlinkPeriod || 250) : 250;
+        await send('/api/game', {source: 'webui', display, animation: previewAnimation, period});
+      } catch { $('#home-message').textContent = 'Device unavailable; showing local preview.'; }
+    });
+
+    $('#stop-preview-button').addEventListener('click', async () => {
+      stopPreviewLocally();
+      try {
+        await send('/api/game', {display: 'idle', animation: 'none'});
+        refresh();
+      } catch { $('#home-message').textContent = 'Device unavailable; preview cleared locally.'; }
+    });
+
+    $('#display-select').addEventListener('change', () => {
+      if (previewActive) {
+        stopPreviewLocally();
+        send('/api/game', {display: 'idle', animation: 'none'}).catch(() => {});
+      }
+      updateAnimationControl();
+    });
+    updateAnimationControl();
+
+    $('#wifi-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = $('#wifi-submit');
+      button.disabled = true;
+      try {
+        await send('/api/wifi', {
+          ssid: $('#ssid').value.trim(),
+          password: $('#password').value
+        });
+        $('#wifi-message').textContent = 'Wi-Fi saved. Device restarting…';
+      } catch (error) {
+        $('#wifi-message').textContent = error.message;
+        button.disabled = false;
+      }
+    });
+
+    $('#led-power').addEventListener('input', event => {
+      $('#led-power-value').value = formatLedPower(event.target.value);
+    });
+
+    $('#normal-flags-blink').addEventListener('change', updateNormalFlagsVisibility);
+    $('#normal-flag-period').addEventListener('input', event => {
+      $('#normal-flag-period-value').value = `${event.target.value} ms`;
+    });
+
+    $('#connection-mode').addEventListener('change', event => {
+      updateGt7IpVisibility();
+      updateGameSettingsAvailability();
+    });
+
+    function updateGameSettingsAvailability() {
+      const disabled = $('#connection-mode').value !== 'wifi';
+      $('#game-form').querySelectorAll('input, select, button').forEach(control => {
+        const needsGame = ['display-type', 'normal-flags-blink', 'normal-flag-period'].includes(control.id);
+        control.disabled = disabled || (needsGame && !$('#wifi-game').value);
+      });
+    }
+
+    function updateGt7IpVisibility() {
+      const visible = $('#connection-mode').value === 'wifi' && $('#wifi-game').value === 'gt7';
+      $('#gt7-ip-row').hidden = !visible;
+      $('#gt7-console-ip').required = visible;
+    }
+
+    function updateDisplayOptions() {
+      const select = $('#display-type');
+      const selected = select.value;
+      const options = $('#wifi-game').value === 'gt7'
+        ? [['gear', 'Gear']]
+        : [['flag', 'Flag'], ['gear', 'Gear'], ['flaggear', 'Flag & gear']];
+      select.replaceChildren(...options.map(([value, label]) => new Option(label, value)));
+      select.value = options.some(([value]) => value === selected) ? selected : options[0][0];
+    }
+
+    $('#wifi-game').addEventListener('change', () => {
+      updateGt7IpVisibility();
+      updateDisplayOptions();
+      updateNormalFlagsVisibility();
+      updateGameSettingsAvailability();
+    });
+
+    $('#display-type').addEventListener('change', updateNormalFlagsVisibility);
+
+    function updateNormalFlagsVisibility() {
+      const supportsFlags = ['flag', 'flaggear'].includes($('#display-type').value);
+      $('#normal-flags-blink-row').hidden = !supportsFlags;
+      $('#normal-flag-period-row').hidden = !supportsFlags || !$('#normal-flags-blink').checked;
+    }
+
+    $('#game-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = $('#game-submit');
+      button.disabled = true;
+      $('#game-message').textContent = 'Saving game settings…';
+      try {
+        await send('/api/game-settings', {
+          wifiGame: $('#wifi-game').value,
+          gt7ConsoleIp: $('#gt7-console-ip').value.trim(),
+          displayType: $('#display-type').value,
+          normalFlagsBlink: $('#normal-flags-blink').checked,
+          normalFlagBlinkPeriod: Number($('#normal-flag-period').value)
+        });
+        savedNormalFlagsBlink = $('#normal-flags-blink').checked;
+        savedNormalFlagBlinkPeriod = Number($('#normal-flag-period').value) || 250;
+        $('#game-message').textContent = 'Game settings saved.';
+        refresh();
+      } catch (error) {
+        $('#game-message').textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $('#device-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = $('#device-submit');
+      button.disabled = true;
+      $('#device-message').textContent = 'Saving settings…';
+      try {
+        await send('/api/settings', {
+          hostname: $('#device-hostname').value.trim(),
+          connectionMode: $('#connection-mode').value,
+          ledPower: Number($('#led-power').value)
+        });
+        $('#device-message').textContent = 'Settings saved to device.';
+        refresh();
+      } catch (error) {
+        $('#device-message').textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    async function uploadUpdate(fileInputId, buttonId, messageId, endpoint, name) {
+      const file = $(fileInputId).files[0];
+      const button = $(buttonId);
+      if (!file) return;
+      button.disabled = true;
+      $(messageId).textContent = `Uploading ${name}…`;
+      const data = new FormData();
+      data.append('update', file, file.name);
+      try {
+        const response = await fetch(endpoint, {method: 'POST', body: data});
+        if (!response.ok) throw new Error((await response.text()) || response.statusText);
+        $(messageId).textContent = 'Update installed. Device restarting…';
+      } catch (error) {
+        $(messageId).textContent = error.message;
+        button.disabled = false;
+      }
+    }
+
+    $('#update-form').addEventListener('submit', event => {
+      event.preventDefault();
+      uploadUpdate('#firmware-file', '#update-submit', '#update-message', '/api/update/firmware', 'firmware');
+    });
+
+    $('#filesystem-update-form').addEventListener('submit', event => {
+      event.preventDefault();
+      uploadUpdate('#filesystem-file', '#filesystem-update-submit', '#filesystem-update-message', '/api/update/filesystem', 'filesystem');
+    });
+
+    $('#reset-open').addEventListener('click', () => $('#reset-dialog').showModal());
+    $('#reset-cancel').addEventListener('click', () => $('#reset-dialog').close());
+    $('#reset-confirm').addEventListener('click', async event => {
+      const button = event.currentTarget;
+      button.disabled = true;
+      $('#reset-cancel').disabled = true;
+      $('#reset-message').textContent = 'Erasing settings and rebooting…';
+      try { await send('/api/reset', {}); }
+      catch (error) {
+        $('#reset-message').textContent = error.message;
+        button.disabled = false;
+        $('#reset-cancel').disabled = false;
+      }
+    });
+
+    window.addEventListener('hashchange', showPage);
+    showPage();
+    refresh();
+    setInterval(refresh, 1000);
+  </script>
+</body>
+</html>
