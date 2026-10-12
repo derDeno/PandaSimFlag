@@ -51,6 +51,11 @@ String currentGame = "Not reported";
 String currentConnectionMode = "Standby";
 String currentF1Flag;
 String currentF1Gear;
+String currentF1EventFlag;
+uint32_t f1CheckeredStarted = 0;
+bool f1SafetyCarActive = false;
+bool f1PenaltyFlagActive = false;
+uint32_t f1PenaltyFlagStarted = 0;
 bool accessPoint = false;
 bool animationOff = false;
 String animation = "none";
@@ -189,6 +194,40 @@ bool fillGear(String gear) {
   return false;
 }
 
+void fillPedals(float throttle, float brake) {
+  if (!isfinite(throttle) || !isfinite(brake)) return;
+  const uint8_t throttleLeds = lroundf(constrain(throttle, 0.0f, 100.0f) * 32.0f / 100.0f);
+  const uint8_t brakeLeds = lroundf(constrain(brake, 0.0f, 100.0f) * 32.0f / 100.0f);
+  fill_solid(pixels, LED_COUNT, CRGB::Black);
+  for (uint8_t led = 0; led < 32; ++led) {
+    const uint8_t row = 7 - led / 4;
+    if (led < throttleLeds) pixels[row * 8 + led % 4] = CRGB::Green;
+    if (led < brakeLeds) pixels[row * 8 + 4 + led % 4] = CRGB::Red;
+  }
+  activeFlag = "pedals";
+  animation = "none";
+  ::memcpy(frame, pixels, sizeof(frame));
+  showFrame();
+}
+
+void fillTyres(const float temperatures[4]) {
+  fill_solid(pixels, LED_COUNT, CRGB::Black);
+  for (uint8_t tyre = 0; tyre < 4; ++tyre) {
+    const float temperature = temperatures[tyre];
+    // shortcut: fixed 85–105 °C band, adjust if compound-specific ranges are needed.
+    const CRGB color = !isfinite(temperature) ? CRGB::Black : temperature < 85 ? CRGB::Blue : temperature <= 105 ? CRGB::Green : CRGB::Red;
+    const uint8_t rowOffset = tyre >= 2 ? 4 : 0;
+    const uint8_t colOffset = (tyre % 2) * 4;
+    for (uint8_t row = 0; row < 4; ++row) {
+      for (uint8_t col = 0; col < 4; ++col) pixels[(row + rowOffset) * 8 + col + colOffset] = color;
+    }
+  }
+  activeFlag = "tyres";
+  animation = "none";
+  ::memcpy(frame, pixels, sizeof(frame));
+  showFrame();
+}
+
 void setAnimation(const String& mode, uint16_t period) {
   if (mode != "none" && mode != "blink" && mode != "invert" && mode != "doubleyellow" && mode != "rain") return;
   const bool startRain = mode == "rain" && animation != "rain";
@@ -276,6 +315,20 @@ void applyTelemetry(JsonDocument& doc) {
     ::memcpy(frame, pixels, sizeof(frame));
     showFrame();
   }
+  const bool hasThrottle = doc["throttle"].is<float>() || doc["throttle"].is<int>() || doc["throttle"].is<unsigned int>();
+  const bool hasBrake = doc["brake"].is<float>() || doc["brake"].is<int>() || doc["brake"].is<unsigned int>();
+  if (displayType == "pedals" && hasThrottle && hasBrake) fillPedals(doc["throttle"].as<float>(), doc["brake"].as<float>());
+  if (displayType == "tyres" && doc["tyreTemps"].is<JsonArray>() && doc["tyreTemps"].as<JsonArray>().size() == 4) {
+    JsonArray values = doc["tyreTemps"].as<JsonArray>();
+    float temperatures[4];
+    bool valid = true;
+    for (uint8_t i = 0; i < 4; ++i) {
+      const bool numeric = values[i].is<float>() || values[i].is<int>() || values[i].is<unsigned int>();
+      if (!numeric) { valid = false; break; }
+      temperatures[i] = values[i].as<float>();
+    }
+    if (valid) fillTyres(temperatures);
+  }
 }
 
 uint32_t readLe32(const uint8_t* bytes) {
@@ -326,6 +379,21 @@ void applyNativeTelemetry(const char* display) {
   currentConnectionMode = wifiGame == "f1-2024" ? "Wi-Fi / F1 24 UDP" : "Wi-Fi / F1 25 UDP";
 }
 
+void applyF1Display() {
+  if (displayType == "gear") return;
+  if (currentF1EventFlag == "checkered" && millis() - f1CheckeredStarted >= 10000) currentF1EventFlag = "";
+  if (f1PenaltyFlagActive && millis() - f1PenaltyFlagStarted >= 3000) f1PenaltyFlagActive = false;
+  const char* display = currentF1EventFlag.length() ? currentF1EventFlag.c_str() :
+                        f1PenaltyFlagActive ? "blackwhite" :
+                        f1SafetyCarActive ? "doubleyellow" :
+                        currentF1Flag.length() ? currentF1Flag.c_str() : "idle";
+  if (displayType == "flaggear" && !currentF1EventFlag.length() && !f1PenaltyFlagActive && !f1SafetyCarActive && !currentF1Flag.length() && currentF1Gear.length()) {
+    fillGear(currentF1Gear);
+  } else {
+    applyNativeTelemetry(display);
+  }
+}
+
 void markWifiTelemetry() {
   lastWifiTelemetry = millis();
   wifiTelemetrySeen = true;
@@ -339,6 +407,34 @@ void handleF1Packet(const uint8_t* packet, size_t length) {
   if (!f1Packet) return;
   const uint8_t packetId = packet[6];
   const uint8_t player = packet[27];
+  if (packetId == 3) {
+    if (length < 45) return;
+    markWifiTelemetry();
+    currentGame = selectedGameName();
+    currentConnectionMode = wifiGame == "f1-2024" ? "Wi-Fi / F1 24 UDP" : "Wi-Fi / F1 25 UDP";
+    const uint8_t* event = packet + 29;
+    if (memcmp(event, "SSTA", 4) == 0) {
+      currentF1Flag = "";
+      currentF1EventFlag = "";
+      f1SafetyCarActive = false;
+      f1PenaltyFlagActive = false;
+    } else if (memcmp(event, "RDFL", 4) == 0) {
+      currentF1EventFlag = "red";
+    } else if (memcmp(event, "CHQF", 4) == 0) {
+      currentF1EventFlag = "checkered";
+      f1CheckeredStarted = millis();
+    } else if (memcmp(event, "PENA", 4) == 0) {
+      f1PenaltyFlagActive = true;
+      f1PenaltyFlagStarted = millis();
+    } else if (memcmp(event, "SCAR", 4) == 0) {
+      const uint8_t safetyCarType = packet[33];
+      const uint8_t eventType = packet[34];
+      if ((safetyCarType == 1 || safetyCarType == 2) && eventType == 0) f1SafetyCarActive = true;
+      else if (eventType == 2 || eventType == 3) f1SafetyCarActive = false;
+    }
+    applyF1Display();
+    return;
+  }
   if (player >= 22) return;
   markWifiTelemetry();
   currentGame = selectedGameName();
@@ -349,19 +445,25 @@ void handleF1Packet(const uint8_t* packet, size_t length) {
     if (length <= flagOffset) return;
     const int8_t flag = (int8_t)packet[flagOffset];
     if (flag == 0) {
-      const bool flagWasActive = currentF1Flag.length() > 0;
       currentF1Flag = "";
-      if (displayType == "flaggear" && flagWasActive && currentF1Gear.length()) fillGear(currentF1Gear);
-      else if (displayType != "gear" && displayType != "flaggear") applyNativeTelemetry("idle");
     } else if (flag == 1 || flag == 2 || flag == 3) {
       currentF1Flag = flag == 1 ? "green" : flag == 2 ? "blue" : "yellow";
-      if (displayType != "gear") applyNativeTelemetry(currentF1Flag.c_str());
+      if (flag == 1 && currentF1EventFlag == "red") currentF1EventFlag = "";
     }
+    applyF1Display();
   } else if (packetId == 6 && length >= 29 + ((size_t)player + 1) * 60) {
     const size_t carOffset = 29 + (size_t)player * 60;
     const int8_t gear = (int8_t)packet[carOffset + 15];
     currentF1Gear = gear < 0 ? "R" : gear == 0 ? "N" : String(gear);
-    if (displayType == "gear" || (displayType == "flaggear" && !currentF1Flag.length())) fillGear(currentF1Gear);
+    if (displayType == "pedals") {
+      float throttle, brake;
+      memcpy(&throttle, packet + carOffset + 2, sizeof(throttle));
+      memcpy(&brake, packet + carOffset + 10, sizeof(brake));
+      fillPedals(throttle * 100.0f, brake * 100.0f);
+    } else if (displayType == "tyres") {
+      const float temperatures[] = {packet[carOffset + 32], packet[carOffset + 33], packet[carOffset + 30], packet[carOffset + 31]};
+      fillTyres(temperatures);
+    } else if (displayType == "gear" || (displayType == "flaggear" && !currentF1Flag.length() && !currentF1EventFlag.length() && !f1PenaltyFlagActive && !f1SafetyCarActive)) fillGear(currentF1Gear);
   }
 }
 
@@ -513,7 +615,7 @@ void handleGameSettingsSave() {
   const int requestedNormalFlagBlinkPeriod = doc["normalFlagBlinkPeriod"] | normalFlagBlinkPeriod;
   const bool validDisplayType = requestedWifiGame == "gt7"
       ? requestedDisplayType == "gear"
-      : requestedDisplayType == "gear" || requestedDisplayType == "flag" || requestedDisplayType == "flaggear";
+      : requestedDisplayType == "gear" || requestedDisplayType == "flag" || requestedDisplayType == "flaggear" || requestedDisplayType == "pedals" || requestedDisplayType == "tyres";
   IPAddress parsedGt7Ip;
   if ((requestedWifiGame != "" && requestedWifiGame != "gt7" && requestedWifiGame != "f1-2024" && requestedWifiGame != "f1-2025") ||
       (requestedWifiGame == "gt7" && (!parsedGt7Ip.fromString(requestedGt7ConsoleIp) || parsedGt7Ip == IPAddress(0, 0, 0, 0))) ||
@@ -536,6 +638,9 @@ void handleGameSettingsSave() {
   if (wifiGame != requestedWifiGame) {
     currentF1Flag = "";
     currentF1Gear = "";
+    currentF1EventFlag = "";
+    f1SafetyCarActive = false;
+    f1PenaltyFlagActive = false;
   }
   wifiGame = requestedWifiGame;
   gt7ConsoleIp = requestedGt7ConsoleIp;
