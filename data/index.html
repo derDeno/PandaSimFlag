@@ -119,7 +119,7 @@
           <form id="game-form">
             <div class="form-row"><label for="wifi-game">Wi-Fi game</label><select id="wifi-game" name="wifiGame"><option value="">Select a game</option><option value="gt7">Gran Turismo 7</option><option value="f1-2024">F1 2024</option><option value="f1-2025">F1 2025</option></select></div>
             <div class="form-row" id="gt7-ip-row" hidden><label for="gt7-console-ip">GT7 console IP address</label><input id="gt7-console-ip" name="gt7ConsoleIp" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" pattern="([0-9]{1,3}\.){3}[0-9]{1,3}"><div class="muted small">Enter the PlayStation’s IP address so the device can request GT7 telemetry.</div></div>
-            <div class="form-row"><label for="display-type">Display option</label><select id="display-type" name="displayType"><option value="flag">Flag</option><option value="gear">Gear</option><option value="flaggear">Flag &amp; gear</option></select></div>
+            <div class="form-row"><label for="display-type">Display option</label><select id="display-type" name="displayType"><option value="flag">Flag</option><option value="gear">Gear</option><option value="flaggear">Flag &amp; gear</option><option value="pedals">Throttle &amp; brake</option><option value="tyres">Tyre temperatures</option></select></div>
             <div class="form-row" id="normal-flags-blink-row"><label class="checkbox-label" for="normal-flags-blink"><input id="normal-flags-blink" name="normalFlagsBlink" type="checkbox">Blink normal flags</label></div>
             <div class="form-row" id="normal-flag-period-row" hidden><label for="normal-flag-period">Blink interval: <output id="normal-flag-period-value" for="normal-flag-period">250 ms</output></label><input id="normal-flag-period" name="normalFlagBlinkPeriod" type="range" min="20" max="2000" step="10" value="250"></div>
             <button id="game-submit" class="primary" type="submit">Save game settings</button>
@@ -438,7 +438,7 @@
       const selected = select.value;
       const options = $('#wifi-game').value === 'gt7'
         ? [['gear', 'Gear']]
-        : [['flag', 'Flag'], ['gear', 'Gear'], ['flaggear', 'Flag & gear']];
+        : [['flag', 'Flag'], ['gear', 'Gear'], ['flaggear', 'Flag & gear'], ['pedals', 'Throttle & brake'], ['tyres', 'Tyre temperatures']];
       select.replaceChildren(...options.map(([value, label]) => new Option(label, value)));
       select.value = options.some(([value]) => value === selected) ? selected : options[0][0];
     }
