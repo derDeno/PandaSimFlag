@@ -127,12 +127,12 @@ similar USB-UART bridge.
   |---------|------|
   |USB D- | GPIO19 |
   |USB D+ | GPIO20 |
-  |I²C SCL | GPIO1 |
-  |I²C SDA | GPIO2 |
-  |Matrix data | GPIO5 |
+  |I²C SCL | GPIO2 |
+  |I²C SDA | GPIO1 |
+  |Matrix data | GPIO16 |
   |Status LED | GPIO40 |
-  |UART TX | GPIO17 |
-  |UART RX | GPIO18 |
+  |UART TX (TXD0) | GPIO43 |
+  |UART RX (RXD0) | GPIO44 |
   |Boot | GPIO0 |
   |Reset | EN |
 
@@ -162,7 +162,7 @@ The ESP32-S3 uses 3.3 V logic while the matrix operates from 5 V.
 A **Nexperia 74AHCT1G125GV,125** buffer translates the data signal:
 
 ``` text
-ESP32 GPIO5
+ESP32 GPIO16
      |
      | 3.3 V logic
      v
@@ -202,7 +202,8 @@ source-current advertisement:
 -   1.5 A
 -   3.0 A
 
-The ESP32 communicates with the TUSB320 over I²C.
+The ESP32 communicates with the TUSB320 over I²C at 7-bit address **0x47**
+(ADDR tied to GND), using GPIO1 for SDA and GPIO2 for SCL.
 
 Current configuration:
 
@@ -213,8 +214,8 @@ PORT      -> GND
 VBUS_DET  -> VBUS through 900 kohm
 ADDR      -> GND
 INT_N     -> unused / optional
-SDA       -> ESP32 SDA
-SCL       -> ESP32 SCL
+SDA       -> ESP32 GPIO1
+SCL       -> ESP32 GPIO2
 ID        -> NC
 EN_N      -> GND
 VDD       -> 3.3 V
@@ -289,25 +290,27 @@ The board includes:
 -   4.7 kΩ SDA pull-up to 3.3 V
 -   4.7 kΩ SCL pull-up to 3.3 V
 
-Header:
+Header pinout (by PCB pin number):
 
 ``` text
-3.3V
-SDA
-SCL
-GND
+1: GND
+2: 3.3V
+3: SCL (GPIO2)
+4: SDA (GPIO1)
 ```
 
 # UART / Development Header
 
-A development header provides access to:
+A development header provides the following connections (by PCB pin number):
 
--   3.3 V
--   UART TX
--   UART RX
--   GPIO0 / BOOT
--   EN / RESET
--   GND
+``` text
+1: GND
+2: UART TX (TXD0 / GPIO43)
+3: UART RX (RXD0 / GPIO44)
+4: 3.3V
+5: GPIO0 / BOOT
+6: EN / RESET
+```
 
 Normal firmware flashing should be possible directly through native
 USB-C. The header remains useful for development, recovery, and

@@ -14,14 +14,14 @@
 #include <Wire.h>
 
 namespace {
-constexpr uint8_t MATRIX_PIN = 5;
+constexpr uint8_t MATRIX_PIN = 16;
 constexpr uint8_t STATUS_PIN = 40;
 constexpr uint16_t LED_COUNT = 64;
 constexpr uint16_t GAME_UDP_PORT = 20777;
 constexpr uint16_t GT7_UDP_PORT = 33740;
 constexpr uint16_t GT7_HEARTBEAT_PORT = 33739;
 constexpr uint32_t WIFI_TELEMETRY_TIMEOUT_MS = 30000;
-constexpr uint8_t TUSB320_ADDRESS = 0x60;
+constexpr uint8_t TUSB320_ADDRESS = 0x47;
 constexpr uint16_t SAFE_LED_LIMIT_MA = 200;
 constexpr uint16_t MEDIUM_LED_LIMIT_MA = 800;
 constexpr uint16_t HIGH_LED_LIMIT_MA = 2000;
@@ -927,7 +927,7 @@ void setup() {
   FastLED.setBrightness(64);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, SAFE_LED_LIMIT_MA);
   FastLED.clear(true);
-  Wire.begin(2, 1); // SDA, SCL
+  Wire.begin(1, 2); // SDA, SCL
   updatePowerDetection();
   filesystemMounted = LittleFS.begin(false);
   if (filesystemMounted) filesystemVersion = readFilesystemVersion();
