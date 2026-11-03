@@ -127,12 +127,12 @@ similar USB-UART bridge.
   |---------|------|
   |USB D- | GPIO19 |
   |USB D+ | GPIO20 |
-  |I²C SCL | GPIO1 |
-  |I²C SDA | GPIO2 |
-  |Matrix data | GPIO5 |
+  |I²C SCL | GPIO2 |
+  |I²C SDA | GPIO1 |
+  |Matrix data | GPIO16 |
   |Status LED | GPIO40 |
-  |UART TX | GPIO17 |
-  |UART RX | GPIO18 |
+  |UART TX (TXD0) | GPIO43 |
+  |UART RX (RXD0) | GPIO44 |
   |Boot | GPIO0 |
   |Reset | EN |
 
@@ -162,7 +162,7 @@ The ESP32-S3 uses 3.3 V logic while the matrix operates from 5 V.
 A **Nexperia 74AHCT1G125GV,125** buffer translates the data signal:
 
 ``` text
-ESP32 GPIO5
+ESP32 GPIO16
      |
      | 3.3 V logic
      v
@@ -202,7 +202,8 @@ source-current advertisement:
 -   1.5 A
 -   3.0 A
 
-The ESP32 communicates with the TUSB320 over I²C.
+The ESP32 communicates with the TUSB320 over I²C at 7-bit address **0x47**
+(ADDR tied to GND), using GPIO1 for SDA and GPIO2 for SCL.
 
 Current configuration:
 
@@ -213,8 +214,8 @@ PORT      -> GND
 VBUS_DET  -> VBUS through 900 kohm
 ADDR      -> GND
 INT_N     -> unused / optional
-SDA       -> ESP32 SDA
-SCL       -> ESP32 SCL
+SDA       -> ESP32 GPIO1
+SCL       -> ESP32 GPIO2
 ID        -> NC
 EN_N      -> GND
 VDD       -> 3.3 V
@@ -240,7 +241,7 @@ USB capability
 Current must always be reserved for the ESP32-S3, regulator, TUSB320,
 level shifter, and other board electronics.
 
-The user-configurable brightness setting (default 25%) is applied in
+The user-configurable brightness setting (default 10%) is applied in
 addition to this software power cap. The TUSB320 reports the **USB
 Type-C current advertisement**; it does not measure actual current or
 verify the source's real capability. Sources without a recognized
@@ -289,25 +290,27 @@ The board includes:
 -   4.7 kΩ SDA pull-up to 3.3 V
 -   4.7 kΩ SCL pull-up to 3.3 V
 
-Header:
+Header pinout (by PCB pin number):
 
 ``` text
-3.3V
-SDA
-SCL
-GND
+1: GND
+2: 3.3V
+3: SCL (GPIO2)
+4: SDA (GPIO1)
 ```
 
 # UART / Development Header
 
-A development header provides access to:
+A development header provides the following connections (by PCB pin number):
 
--   3.3 V
--   UART TX
--   UART RX
--   GPIO0 / BOOT
--   EN / RESET
--   GND
+``` text
+1: GND
+2: UART TX (TXD0 / GPIO43)
+3: UART RX (RXD0 / GPIO44)
+4: 3.3V
+5: GPIO0 / BOOT
+6: EN / RESET
+```
 
 Normal firmware flashing should be possible directly through native
 USB-C. The header remains useful for development, recovery, and
@@ -318,8 +321,9 @@ debugging, or can be used with the **PandaFlasher**.
 
 A programmable status LED is connected to **GPIO40**.
 
-The current firmware blinks it at a faster rate while the setup access
-point is active and a slower rate otherwise.
+The firmware blinks it quickly in setup AP mode, pulses it slowly in standby, and
+keeps it lit while game telemetry is active. Device settings provide an
+enable switch and a separate 0–100% brightness control (default 20%), saved across restarts.
 
 # Current Firmware
 
@@ -327,10 +331,10 @@ The ESP32-S3 firmware provides:
 
 -   An open setup access point on first boot, named `PandaSimFlag-XXXX`,
     with the configuration page at `http://192.168.4.1`.
--   Wi-Fi station mode with configurable hostname and mDNS address, plus
+-   Wi-Fi station mode with a fixed MAC-suffixed network device name and configurable mDNS address, plus
     USB mode for native USB CDC and SimHub serial LED messages.
 -   A device web UI for Wi-Fi onboarding, device and game settings,
-    status, local matrix preview, manual flag preview, reset, and OTA.
+    status, live device frames, manual matrix control, reset, and OTA.
 -   Settings stored in NVS, including hostname, connection mode, selected
     game, display option, LED power, and normal-flag blink behavior.
 -   Native Wi-Fi decoders for F1 2024, F1 2025, and Gran Turismo 7. GT7
@@ -340,10 +344,11 @@ The ESP32-S3 firmware provides:
     currently offers **Gear**. The JSON renderer also accepts RPM and
     proximity data.
 -   JSON telemetry through HTTP `POST /api/game` and UDP port `20777`.
--   A 30-second Wi-Fi telemetry timeout that clears the display to idle
-    when valid game telemetry stops arriving.
--   Animated flag patterns, optional blinking for normal flags, a local
-    matrix preview, and a configurable brightness setting.
+-   An idle-off display with 30-second Wi-Fi and 2-second USB telemetry
+    timeouts. Manual Web UI control pauses game output until Stop.
+-   Animated flag patterns, optional blinking for normal flags, a live
+    matrix view showing device pixel colors independently of LED brightness, and a
+    configurable LED Matrix power setting.
 -   TUSB320-based LED power limiting and separate firmware and LittleFS
     OTA uploads. The filesystem version is read from
     `firmware/data/version.txt`.
@@ -385,9 +390,60 @@ restructuring the entire firmware.
   I²C pull-ups                 4.7 kΩ
   TUSB320 VBUS_DET resistor    900 kΩ
 
+# Task and Core Allocation
+
+Core 0 runs the Web UI/API, Wi-Fi management, captive DNS, settings/NVS,
+OTA, I²C power detection, and the power LED. Arduino network events and
+the SDK's Wi-Fi, TCP/IP, and mDNS tasks are pinned to core 0.
+
+A dedicated task on core 1 owns USB/UDP telemetry, game decoding,
+animations, LED buffers, and FastLED/RMT output. Settings and UI commands
+cross cores through bounded queues; the Web UI reads copied snapshots.
+Home status and settings load once per page load. The live matrix polls
+`/api/matrix` at 4 Hz for built-in pattern names, animation timing/phase,
+and compact telemetry values; the browser renders those patterns locally.
+USB/SimHub frames use raw RGB at 10 Hz. Polling and browser animation pause
+on Settings and in hidden tabs. Install both firmware and filesystem images
+when updating this API and Web UI together.
+The matrix task coalesces frame changes and yields every iteration, so
+slow HTTP clients and I²C operations do not hold its rendering loop.
+
+FastLED is pinned to 3.9.13: version 3.10.6 misdetects RMT support with
+this ESP-IDF 4.4 SDK and falls back to software timing. A compile-time
+check requires the RMT4 backend for the matrix.
+
+Viewed from the front in the normal upright orientation, the matrix data
+chain starts at the bottom-right and snakes vertically through columns
+from right to left. Raw LEDs 0, 1, 7, 8, 56, and 63 were measured at
+(row, column) (8,8), (7,8), (1,8), (1,7), (1,1), and (8,1).
+Rendering, Web UI snapshots, and USB frames use rows from top-left;
+`matrix_layout.h` converts to wire order only when transmitting a frame.
+Device settings show the saved matrix orientation (0° by default). **Adjust**
+opens an assistant that pauses game/demo output and lights one red dot using
+the current orientation. Viewed from the front, use **Rotate left/right** until
+the dot reaches the top-left corner. Turns preview immediately in 90° steps;
+**Save** writes only the orientation to NVS, independently of other settings.
+**Cancel** or Escape restores the saved orientation. Both resume normal output
+with the next game data. The dot stays visible even if LED power is Off, while
+respecting the USB power cap. The Web UI preview stays upright; the saved
+rotation applies to all physical output, including USB frames.
+
+`POST /api/orientation` accepts `action: start` and returns a session ID and
+rotation. Subsequent `preview` (with integer `rotation`), `keepalive`, `save`,
+and `cancel` actions require that session ID. Only one assistant can be open;
+previews do not write flash. The browser renews the session every three seconds
+and cancels when leaving the page. After 15 seconds without contact, both cores
+release the assistant and discard unsaved turns, including if HTTP is stalled.
+The layout check can be run with `clang++ -std=c++11 tests/check_matrix_layout.cpp
+-o check_matrix_layout.exe` followed by `./check_matrix_layout.exe`.
+
+Flash writes during settings saves or OTA can still briefly stall both
+cores because the ESP32-S3 shares its flash/cache hardware. This task
+split does not provide hard real-time guarantees during those writes.
+
 # Current Status
 
-Hardware revision 1.0 and firmware version 0.1.0 are in place. The
+Hardware revision 1.0 and firmware version 0.1.9 are in place. The
 firmware includes the web UI, USB/SimHub input, the listed Wi-Fi decoders,
 power detection and LED limiting, NVS configuration, and separate OTA
 paths for firmware and filesystem images. This remains bring-up software;
