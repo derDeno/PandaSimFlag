@@ -37,7 +37,7 @@ constexpr uint8_t TUSB320_ADDRESS = 0x47;
 constexpr uint16_t SAFE_LED_LIMIT_MA = 200;
 constexpr uint16_t MEDIUM_LED_LIMIT_MA = 800;
 constexpr uint16_t HIGH_LED_LIMIT_MA = 2000;
-constexpr char VERSION[] = "0.1.10";
+constexpr char VERSION[] = "0.1.11";
 constexpr BaseType_t CONTROL_CORE = 0;
 constexpr BaseType_t MATRIX_CORE = 1;
 constexpr size_t MAX_TELEMETRY_BYTES = 1472;
@@ -138,7 +138,7 @@ uint32_t f1PenaltyFlagStarted = 0;
 bool accessPoint = false;
 bool animationOff = false;
 String animation = "none";
-String activeFlag = "idle";
+String activeFlag;
 uint16_t animationPeriod = 250;
 uint8_t rainOffset = 0;
 uint32_t nextAnimation = 0;
@@ -257,6 +257,7 @@ void drawRain(uint8_t offset) {
 }
 
 void fillFlag(const String& flag) {
+  if (activeFlag == flag) return;
   const bool continueRain = flag == "rain" && animation == "rain";
   activeFlag = flag;
   animationOff = false;
@@ -315,12 +316,14 @@ void fillPedals(float throttle, float brake) {
   if (!isfinite(throttle) || !isfinite(brake)) return;
   const uint8_t throttleLeds = lroundf(constrain(throttle, 0.0f, 100.0f) * 32.0f / 100.0f);
   const uint8_t brakeLeds = lroundf(constrain(brake, 0.0f, 100.0f) * 32.0f / 100.0f);
-  fill_solid(pixels, LED_COUNT, CRGB::Black);
+  CRGB nextFrame[LED_COUNT] = {};
   for (uint8_t led = 0; led < 32; ++led) {
     const uint8_t row = 7 - led / 4;
-    if (led < throttleLeds) pixels[row * 8 + led % 4] = CRGB::Green;
-    if (led < brakeLeds) pixels[row * 8 + 4 + led % 4] = CRGB::Red;
+    if (led < throttleLeds) nextFrame[row * 8 + led % 4] = CRGB::Green;
+    if (led < brakeLeds) nextFrame[row * 8 + 4 + led % 4] = CRGB::Red;
   }
+  if (activeFlag == "pedals" && animation == "none" && memcmp(frame, nextFrame, sizeof(frame)) == 0) return;
+  ::memcpy(pixels, nextFrame, sizeof(pixels));
   activeFlag = "pedals";
   animation = "none";
   ::memcpy(frame, pixels, sizeof(frame));
@@ -328,7 +331,7 @@ void fillPedals(float throttle, float brake) {
 }
 
 void fillTyres(const float temperatures[4]) {
-  fill_solid(pixels, LED_COUNT, CRGB::Black);
+  CRGB nextFrame[LED_COUNT] = {};
   for (uint8_t tyre = 0; tyre < 4; ++tyre) {
     const float temperature = temperatures[tyre];
     // shortcut: fixed 85–105 °C band, adjust if compound-specific ranges are needed.
@@ -336,9 +339,11 @@ void fillTyres(const float temperatures[4]) {
     const uint8_t rowOffset = tyre >= 2 ? 4 : 0;
     const uint8_t colOffset = (tyre % 2) * 4;
     for (uint8_t row = 0; row < 4; ++row) {
-      for (uint8_t col = 0; col < 4; ++col) pixels[(row + rowOffset) * 8 + col + colOffset] = color;
+      for (uint8_t col = 0; col < 4; ++col) nextFrame[(row + rowOffset) * 8 + col + colOffset] = color;
     }
   }
+  if (activeFlag == "tyres" && animation == "none" && memcmp(frame, nextFrame, sizeof(frame)) == 0) return;
+  ::memcpy(pixels, nextFrame, sizeof(pixels));
   activeFlag = "tyres";
   animation = "none";
   ::memcpy(frame, pixels, sizeof(frame));
@@ -347,12 +352,15 @@ void fillTyres(const float temperatures[4]) {
 
 void setAnimation(const String& mode, uint16_t period) {
   if (mode != "none" && mode != "blink" && mode != "invert" && mode != "doubleyellow" && mode != "rain") return;
+  period = mode == "blink" ? constrain(period, 20, 2000) : constrain(period, 250, 5000);
+  if (animation == mode && animationPeriod == period) return;
   const bool startRain = mode == "rain" && animation != "rain";
   animation = mode;
-  animationPeriod = mode == "blink" ? constrain(period, 20, 2000) : constrain(period, 250, 5000);
+  animationPeriod = period;
   animationOff = false;
   if (startRain) rainOffset = 0;
-  ::memcpy(frame, pixels, sizeof(frame));
+  nextAnimation = millis() + animationPeriod;
+  ::memcpy(pixels, frame, sizeof(pixels));
   showFrame();
 }
 
@@ -434,6 +442,8 @@ void applyTelemetry(JsonDocument& doc) {
     setAnimation("invert", doc["period"] | animationPeriod);
   } else if (display == "rain" || flag == "rain") {
     setAnimation("rain", doc["period"] | animationPeriod);
+  } else if (isNormalFlag(selectedDisplay)) {
+    setAnimation("none", animationPeriod);
   }
   if (doc["proximity"].is<const char*>()) {
     String side = doc["proximity"].as<String>();
@@ -521,7 +531,7 @@ void applyNativeTelemetry(const char* display) {
 }
 
 void applyF1Display() {
-  if (displayType == "gear") return;
+  if (displayType != "flag" && displayType != "flaggear") return;
   if (currentF1EventFlag == "checkered" && millis() - f1CheckeredStarted >= 10000) currentF1EventFlag = "";
   if (f1PenaltyFlagActive && millis() - f1PenaltyFlagStarted >= 3000) f1PenaltyFlagActive = false;
   const char* display = currentF1EventFlag.length() ? currentF1EventFlag.c_str() :
@@ -603,7 +613,7 @@ void handleF1Packet(const uint8_t* packet, size_t length) {
       memcpy(&brake, packet + carOffset + 10, sizeof(brake));
       fillPedals(throttle * 100.0f, brake * 100.0f);
     } else if (displayType == "tyres") {
-      const float temperatures[] = {packet[carOffset + 32], packet[carOffset + 33], packet[carOffset + 30], packet[carOffset + 31]};
+      const float temperatures[] = {float(packet[carOffset + 32]), float(packet[carOffset + 33]), float(packet[carOffset + 30]), float(packet[carOffset + 31])};
       fillTyres(temperatures);
     } else if (displayType == "gear" || (displayType == "flaggear" && !currentF1Flag.length() && !currentF1EventFlag.length() && !f1PenaltyFlagActive && !f1SafetyCarActive)) fillGear(currentF1Gear);
   }
