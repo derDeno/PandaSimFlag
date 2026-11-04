@@ -471,7 +471,7 @@ C++ compiler and `-I include` to test cursor validation and ring-buffer wrap/ove
 
 # Current Status
 
-Hardware revision 1.0 and firmware version 0.1.9 are in place. The
+Hardware revision 1.0 and firmware version 0.1.10 are in place. The
 firmware includes the web UI, USB/SimHub input, the listed Wi-Fi decoders,
 power detection and LED limiting, NVS configuration, and separate OTA
 paths for firmware and filesystem images. This remains bring-up software;
