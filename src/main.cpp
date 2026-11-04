@@ -15,6 +15,11 @@
 #include <Wire.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
+#include <esp_system.h>
+#include <inttypes.h>
+#include <memory>
+#include <new>
+#include "logs.h"
 #include "matrix_layout.h"
 
 namespace {
@@ -631,7 +636,61 @@ void handleGt7Packet(uint8_t* packet, size_t length) {
 void replyJson(JsonDocument& doc) {
   String response;
   serializeJson(doc, response);
+  server.sendHeader("Cache-Control", "no-store");
   server.send(200, "application/json", response);
+}
+
+void sendLogs() {
+  uint64_t since = 0, boot = 0;
+  if (server.args()) {
+    if (server.args() != 2 || !server.hasArg("since") || !server.hasArg("boot") ||
+        !pandasimflag::logs::parseCursor(server.arg("since").c_str(), UINT64_MAX, since) ||
+        !pandasimflag::logs::parseCursor(server.arg("boot").c_str(), UINT32_MAX, boot)) {
+      server.send(400, "application/json", "{\"error\":\"invalid_log_cursor\"}");
+      return;
+    }
+    if (boot != pandasimflag::logs::boot_id()) since = 0;
+  }
+  // Snapshot under the logging lock; socket writes happen after releasing it.
+  std::unique_ptr<char[]> text(new (std::nothrow) char[pandasimflag::logs::kCapacity]);
+  if (!text) {
+    server.send(503, "application/json", "{\"error\":\"log_buffer_unavailable\"}");
+    return;
+  }
+  const auto snapshot = pandasimflag::logs::read(since, text.get());
+  char cursor[21];
+  snprintf(cursor, sizeof(cursor), "%" PRIu64, snapshot.next);
+  server.sendHeader("Cache-Control", "no-store");
+  server.sendHeader("X-Log-Cursor", cursor);
+  server.sendHeader("X-Log-Boot", String(pandasimflag::logs::boot_id()));
+  server.sendHeader("X-Log-Dropped", snapshot.dropped ? "1" : "0");
+  server.setContentLength(snapshot.size);
+  server.send(200, "text/plain; charset=utf-8", "");
+  if (snapshot.size) server.sendContent(text.get(), snapshot.size);
+}
+
+void sendInfo() {
+  const MatrixSnapshot snapshot = readMatrixSnapshot();
+  JsonDocument doc;
+  doc["target"] = "esp32s3";
+  doc["pcb_revision"] = "1.0";
+  doc["chip_revision"] = ESP.getChipRevision();
+  doc["cpu_cores"] = ESP.getChipCores();
+  doc["cpu_mhz"] = ESP.getCpuFreqMHz();
+  doc["flash_bytes"] = ESP.getFlashChipSize();
+  doc["sdk_version"] = ESP.getSdkVersion();
+  doc["build_date"] = __DATE__;
+  doc["build_time"] = __TIME__;
+  doc["reset_reason"] = esp_reset_reason();
+  doc["heap_free_bytes"] = ESP.getFreeHeap();
+  doc["heap_min_free_bytes"] = ESP.getMinFreeHeap();
+  doc["task_count"] = uxTaskGetNumberOfTasks();
+  doc["log_capacity_bytes"] = pandasimflag::logs::kCapacity;
+  doc["control_core"] = xPortGetCoreID();
+  doc["matrix_core"] = snapshot.core;
+  doc["matrix_frames"] = snapshot.frames;
+  doc["matrix_stack_free_bytes"] = snapshot.stackFreeBytes;
+  replyJson(doc);
 }
 
 String readFilesystemVersion() {
@@ -692,6 +751,8 @@ void sendState() {
 void sendMatrixState() {
   const MatrixSnapshot snapshot = readMatrixSnapshot();
   JsonDocument doc;
+  doc["game"] = snapshot.game;
+  doc["connectionMode"] = accessPoint ? "Setup AP" : snapshot.connectionMode;
   doc["gameConnected"] = snapshot.gameConnected;
   doc["gameSyncPaused"] = snapshot.gameSyncPaused;
   doc["orientationActive"] = snapshot.orientationActive;
@@ -741,6 +802,7 @@ void startMdns(bool useMacSuffix = false) {
     }
     if (mdnsStarted) MDNS.addService("http", "tcp", 80);
   }
+  pandasimflag::logs::write("mDNS %s: %s.local", mdnsStarted ? "started" : "failed", hostName.c_str());
 }
 
 void handleMdnsConflict() {
@@ -816,6 +878,7 @@ void handleOrientation() {
   response["session"] = orientationSession;
   response["rotation"] = controlMatrixSettings.orientationActive
       ? controlMatrixSettings.orientationRotation : controlMatrixSettings.matrixRotation;
+  if (action != "keepalive") pandasimflag::logs::write("Orientation assistant: %s", action.c_str());
   replyJson(response);
 }
 
@@ -881,6 +944,7 @@ void handleSettingsSave() {
   powerLedBrightnessPercent = requestedPowerLedBrightness;
   updateStatusLed();
   if (hostnameChanged) startMdns();
+  pandasimflag::logs::write("Device settings saved; input %s", controlMatrixSettings.inputMode);
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
@@ -923,6 +987,7 @@ void handleGameSettingsSave() {
   controlMatrixSettings.normalFlagsBlink = requestedNormalFlagsBlink;
   controlMatrixSettings.normalFlagBlinkPeriod = requestedNormalFlagBlinkPeriod;
   publishMatrixSettings();
+  pandasimflag::logs::write("Game settings saved; game %s, display %s", controlMatrixSettings.wifiGame, controlMatrixSettings.displayType);
   server.send(200, "application/json", "{\"ok\":true}");
 }
 
@@ -933,6 +998,7 @@ void startAccessPoint() {
   dns.setTTL(0);
   dns.start(53, "*", WiFi.softAPIP());
   startMdns();
+  pandasimflag::logs::write("Setup access point started at %s", WiFi.softAPIP().toString().c_str());
 }
 
 void handleWifiSave() {
@@ -951,12 +1017,14 @@ void handleWifiSave() {
   preferences.putString("ssid", ssid);
   preferences.putString("password", password);
   preferences.end();
+  pandasimflag::logs::write("Wi-Fi settings saved; restarting");
   server.send(200, "application/json", "{\"ok\":true,\"restarting\":true}");
   delay(250);
   ESP.restart();
 }
 
 void handleReboot() {
+  pandasimflag::logs::write("Restart requested from WebUI");
   server.send(200, "application/json", "{\"ok\":true,\"restarting\":true}");
   delay(300);
   ESP.restart();
@@ -965,9 +1033,11 @@ void handleReboot() {
 void handleReset() {
   const esp_err_t result = nvs_flash_erase();
   if (result != ESP_OK) {
+    pandasimflag::logs::write("Could not erase settings: %d", result);
     server.send(500, "application/json", "{\"error\":\"Could not erase NVS settings\"}");
     return;
   }
+  pandasimflag::logs::write("Settings erased; restarting into setup mode");
   server.send(200, "application/json", "{\"ok\":true,\"restarting\":true}");
   delay(300);
   ESP.restart();
@@ -1007,6 +1077,7 @@ void handleUpdateUpload() {
   HTTPUpload& upload = server.upload();
   if (upload.status == UPLOAD_FILE_START) {
     updateFilesystem = server.uri() == "/api/update/filesystem";
+    pandasimflag::logs::write("Starting %s update", updateFilesystem ? "filesystem" : "firmware");
     updateStarted = false;
     updateSucceeded = false;
     updateError = "";
@@ -1048,6 +1119,7 @@ void handleUpdateUpload() {
 
 void handleUpdateComplete() {
   if (!updateSucceeded) {
+    pandasimflag::logs::write("Update failed: %s", updateError.c_str());
     JsonDocument doc;
     doc["error"] = updateError.length() ? updateError : "Firmware update failed";
     String response;
@@ -1055,6 +1127,7 @@ void handleUpdateComplete() {
     server.send(400, "application/json", response);
     return;
   }
+  pandasimflag::logs::write("Update installed; restarting");
   server.send(200, "application/json", "{\"ok\":true,\"restarting\":true}");
   delay(500);
   ESP.restart();
@@ -1092,6 +1165,8 @@ void setupWeb() {
   server.on("/", HTTP_GET, routeRequest);
   server.on("/api/state", HTTP_GET, sendState);
   server.on("/api/matrix", HTTP_GET, sendMatrixState);
+  server.on("/api/info", HTTP_GET, sendInfo);
+  server.on("/api/logs", HTTP_GET, sendLogs);
   server.on("/api/wifi", HTTP_POST, handleWifiSave);
   server.on("/api/reset", HTTP_POST, handleReset);
   server.on("/api/reboot", HTTP_POST, handleReboot);
@@ -1354,6 +1429,8 @@ void matrixTask(void*) {
 }
 
 void setup() {
+  pandasimflag::logs::start();
+  pandasimflag::logs::write("Booting firmware %s; reset reason %d", VERSION, esp_reset_reason());
   matrixSettingsQueue = xQueueCreate(1, sizeof(MatrixSettings));
   matrixSnapshotQueue = xQueueCreate(1, sizeof(MatrixSnapshot));
   telemetryQueue = xQueueCreate(4, sizeof(TelemetryCommand));
@@ -1366,6 +1443,7 @@ void setup() {
   updatePowerDetection();
   filesystemMounted = LittleFS.begin(false, "/littlefs", 10, "littlefs");
   if (filesystemMounted) filesystemVersion = readFilesystemVersion();
+  pandasimflag::logs::write("WebUI filesystem %s; version %s", filesystemMounted ? "mounted" : "unavailable", filesystemVersion.c_str());
 
   uint8_t mac[6];
   esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -1406,10 +1484,14 @@ void setup() {
     WiFi.begin(wifiSsid.c_str(), wifiPassword.c_str());
     const uint32_t deadline = millis() + 15000;
     while (WiFi.status() != WL_CONNECTED && millis() < deadline) delay(100);
-    if (WiFi.status() == WL_CONNECTED) startMdns();
+    if (WiFi.status() == WL_CONNECTED) {
+      pandasimflag::logs::write("Wi-Fi connected at %s", WiFi.localIP().toString().c_str());
+      startMdns();
+    }
     else startAccessPoint();
   } else startAccessPoint();
   setupWeb();
+  pandasimflag::logs::write("WebUI ready on core %d; matrix task on core %d", CONTROL_CORE, MATRIX_CORE);
 }
 
 void loop() {

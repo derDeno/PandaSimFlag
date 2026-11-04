@@ -399,11 +399,12 @@ the SDK's Wi-Fi, TCP/IP, and mDNS tasks are pinned to core 0.
 A dedicated task on core 1 owns USB/UDP telemetry, game decoding,
 animations, LED buffers, and FastLED/RMT output. Settings and UI commands
 cross cores through bounded queues; the Web UI reads copied snapshots.
-Home status and settings load once per page load. The live matrix polls
+Settings load once per page load; Info provides manually refreshed diagnostic snapshots.
+The live simulation status and matrix poll
 `/api/matrix` at 4 Hz for built-in pattern names, animation timing/phase,
 and compact telemetry values; the browser renders those patterns locally.
 USB/SimHub frames use raw RGB at 10 Hz. Polling and browser animation pause
-on Settings and in hidden tabs. Install both firmware and filesystem images
+on Info, Settings, and in hidden tabs. Install both firmware and filesystem images
 when updating this API and Web UI together.
 The matrix task coalesces frame changes and yields every iteration, so
 slow HTTP clients and I²C operations do not hold its rendering loop.
@@ -440,6 +441,33 @@ The layout check can be run with `clang++ -std=c++11 tests/check_matrix_layout.c
 Flash writes during settings saves or OTA can still briefly stall both
 cores because the ESP32-S3 shares its flash/cache hardware. This task
 split does not provide hard real-time guarantees during those writes.
+
+# Web UI Diagnostics
+
+Info contains the same collapsible device-information and live-log cards as PandaDesk,
+with PandaSimFlag USB power and matrix-task details. `GET /api/info` reports board,
+reset, heap and task information; `GET /api/state` supplies versions and network/power
+status. Refreshing Info does not refill settings forms. The browser checks the latest
+published PandaSimFlag GitHub release once per load for separately versioned firmware
+and filesystem OTA artifacts; badges link to the release without installing anything.
+
+`GET /api/logs` returns UTF-8 plain text from an 8 KiB RAM ring buffer, with
+`X-Log-Cursor`, `X-Log-Boot`, and `X-Log-Dropped` response headers. Subsequent requests
+use `?since=<cursor>&boot=<boot-id>`. Invalid/overflowing cursors return 400; a changed
+boot ID returns the new boot's retained history. Socket writes happen outside the log
+lock. SDK logging keeps its existing output, and application diagnostic events are
+stored in RAM without adding text to the SimHub USB stream. No log files are written
+to flash. Logs are cleared on restart.
+
+The expanded Logs card polls every two seconds, stops when hidden/paused, bounds its
+browser history to 32 KiB, and supports text downloads. Install firmware and filesystem
+together to provide these endpoints and their UI.
+
+Run `node tests/check_webui.js` and `node tests/check_updates.js` for dependency-free
+UI checks. With Playwright and Chrome available, run `node tests/check_info_webui.cjs`,
+`node tests/check_webui.cjs`, `node tests/check_update_webui.cjs`, and
+`node tests/check_reboot_webui.cjs`. Compile `tests/check_log_buffer.cpp` with a host
+C++ compiler and `-I include` to test cursor validation and ring-buffer wrap/overflow.
 
 # Current Status
 
