@@ -464,14 +464,17 @@ browser history to 32 KiB, and supports text downloads. Install firmware and fil
 together to provide these endpoints and their UI.
 
 Run `node tests/check_webui.js` and `node tests/check_updates.js` for dependency-free
-UI checks. With Playwright and Chrome available, run `node tests/check_info_webui.cjs`,
+UI checks. After `pio run`, run `python tests/check_telemetry.py --compiler clang++`
+(or `--compiler cl` in a Visual Studio developer prompt) for host regression checks
+of flag animation continuity, unchanged pedal/tyre frames, and F1 24/25 packet routing.
+With Playwright and Chrome available, run `node tests/check_info_webui.cjs`,
 `node tests/check_webui.cjs`, `node tests/check_update_webui.cjs`, and
 `node tests/check_reboot_webui.cjs`. Compile `tests/check_log_buffer.cpp` with a host
 C++ compiler and `-I include` to test cursor validation and ring-buffer wrap/overflow.
 
 # Current Status
 
-Hardware revision 1.0 and firmware version 0.1.10 are in place. The
+Hardware revision 1.0 and firmware version 0.1.11 are in place. The
 firmware includes the web UI, USB/SimHub input, the listed Wi-Fi decoders,
 power detection and LED limiting, NVS configuration, and separate OTA
 paths for firmware and filesystem images. This remains bring-up software;
