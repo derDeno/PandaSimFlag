@@ -10,14 +10,14 @@
     *{box-sizing:border-box}body{min-height:100vh;max-width:1000px;margin:0 auto;padding:24px;display:flex;flex-direction:column}
     h1,h2,h3,p{margin-top:0}h1{font-size:1.8rem;margin-bottom:2px}h2{font-size:1.1rem;margin-bottom:14px}h3{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#a3a3a3;margin:0 0 8px}
     .header{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:10px}.brand svg{width:36px;height:36px;flex:none;fill:currentColor}.muted{color:#b5b5b5}
-    .nav{display:flex;gap:5px}.nav a{color:#d4d4d4;text-decoration:none;border-radius:7px;padding:7px 12px}.nav a:hover{background:#333333}.nav a[aria-current="page"]{background:#f5f5f5;color:#111111}.nav a:focus-visible{outline:3px solid #ffffff;outline-offset:2px}
+    .nav{display:flex;gap:5px}.nav a{font-weight:500;color:#d4d4d4;text-decoration:none;border-radius:7px;padding:7px 12px}.nav a:hover{background:#333333}.nav a[aria-current="page"]{background:#f5f5f5;color:#111111}.nav a:focus-visible{outline:3px solid #ffffff;outline-offset:2px}
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{min-width:0;background:#202020;border:1px solid #3d3d3d;border-radius:14px;padding:20px}
     .state-banner{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;background:#392d16;border:1px solid #8b641d;color:#fde68a;margin:0}.state-symbol{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;background:#fbbf24;color:#111111;font-weight:800}.state-banner strong{display:block;color:#fef3c7}.state-banner p{margin:2px 0 0;color:#e5d4aa;font-size:.92rem}
     .state-banner[hidden]{display:none}
     .settings-card{grid-column:1/-1}.settings-details summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;font-size:1.1rem;font-weight:700}.settings-details summary::-webkit-details-marker{display:none}.settings-details summary:focus-visible{outline:3px solid #ffffff;outline-offset:4px;border-radius:4px}.expand-icon{width:10px;height:10px;flex:none;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s ease}.settings-details[open] .expand-icon{transform:rotate(45deg)}.settings-content{margin-top:18px}
     .details{display:grid;grid-template-columns:140px minmax(0,1fr);gap:8px 12px;margin:0}.details[hidden]{display:none}.details dt{color:#b5b5b5}.details dd{margin:0;overflow-wrap:anywhere}
     .wifi-form{display:grid;gap:14px;width:100%}.wifi-field{display:grid;gap:6px;font-weight:600}.wifi-field input:not([type="range"]),.wifi-field select{width:100%;font:inherit;color:inherit;border:1px solid #737373;border-radius:8px;padding:10px 12px;background:#111111}.wifi-field input:focus-visible,.wifi-field select:focus-visible{outline:3px solid #ffffff;outline-offset:2px}.wifi-field input[type="range"]{width:100%;margin:8px 0 14px;accent-color:#f5f5f5}.wifi-field>span{display:flex;justify-content:flex-start;align-items:center;gap:6px}.range-value{font-weight:400;color:#b5b5b5}.wifi-note{margin:0;font-size:.85rem;font-weight:400}.wifi-form>button{width:fit-content;justify-self:start}.wifi-form button[type="submit"]{background:#f5f5f5;border-color:#f5f5f5;color:#111111}.wifi-form button[type="submit"]:hover:not(:disabled){background:#d4d4d4}dialog{max-width:min(440px,calc(100vw - 32px));border:1px solid #737373;border-radius:14px;padding:24px;background:#202020;color:#f5f5f5}dialog::backdrop{background:#0009}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.check-field{display:flex;align-items:center;gap:10px}.check-field input{accent-color:#f5f5f5}
-    button{font:inherit;color:inherit;border:1px solid #737373;border-radius:9px;padding:11px;background:#333333}button:focus-visible{outline:3px solid #ffffff;outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}button:not(:disabled){cursor:pointer}button:hover:not(:disabled){background:#4a4a4a}
+    button{font:inherit;font-weight:500;color:inherit;border:1px solid #737373;border-radius:9px;padding:11px;background:#333333}button:focus-visible{outline:3px solid #ffffff;outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}button:not(:disabled){cursor:pointer}button:hover:not(:disabled){background:#4a4a4a}
     main{flex:1}.footer{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:auto;padding-top:18px;color:#a3a3a3;font-size:1rem}.repo-link{display:inline-flex;align-items:center;gap:8px;color:#b5b5b5;text-decoration:none}.repo-link:hover{color:#fff}.repo-link:focus-visible{outline:3px solid #ffffff;outline-offset:3px;border-radius:3px}.repo-link svg{width:20px;height:20px;fill:currentColor}
     .toast-stack{position:fixed;z-index:1000;top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));width:min(440px,calc(100% - 32px));display:grid;gap:10px;pointer-events:none}.toast-stack .alert{position:relative;margin:0;padding-right:56px;box-shadow:0 8px 28px #0006;pointer-events:auto;animation:toast-in .2s ease-out}.toast-close{position:absolute;top:6px;right:6px;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:transparent;font-size:1.4rem;line-height:1;cursor:pointer}.toast-close:hover{background:#ffffff1a}.toast-close-icon{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;pointer-events:none}.toast-countdown{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);pointer-events:none}.toast-countdown[hidden]{display:none}.toast-countdown svg{display:block;width:100%;height:100%}.toast-countdown circle{fill:none;stroke:currentColor;stroke-width:2}.toast-countdown-track{opacity:.2}.toast-countdown-fill{stroke-dasharray:100;stroke-dashoffset:100;stroke-linecap:round}@keyframes toast-in{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.toast-stack .alert{animation:none}}
     @media(max-width:680px){body{padding:16px}.grid{grid-template-columns:1fr}.header{align-items:flex-start;flex-direction:column}.details{grid-template-columns:120px minmax(0,1fr)}}
@@ -30,6 +30,11 @@
     .orientation-setting{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.orientation-setting button{flex:none}#orientation-dialog .preview-actions{margin-bottom:20px}
     #filesystem-update-form{margin-top:28px;padding-top:24px;border-top:1px solid #3d3d3d}#update-dialog{width:440px}.update-step{margin-top:18px}.update-step-label{display:flex;justify-content:space-between;gap:12px}.update-step-label output{color:#b5b5b5}.update-step progress{display:block;width:100%;height:14px;margin-top:8px;accent-color:#f5f5f5}#update-status{margin:18px 0 0;white-space:pre-line}#update-actions{margin-top:20px}
     @media(prefers-reduced-motion:reduce){.expand-icon{transition:none}}
+    .info-toolbar{display:flex;justify-content:flex-start;margin-bottom:20px}#info-refresh{display:inline-flex;align-items:center;gap:8px}#info-status:not([hidden]){margin-bottom:20px}.info-grid{display:grid;gap:22px;grid-template-columns:repeat(2,minmax(0,1fr))}.info-grid .status-group{min-width:0;margin:0;padding:0;border:0}.info-grid .details{grid-template-columns:minmax(100px,1fr) minmax(0,1.2fr);font-size:.9rem}@media(max-width:680px){.info-grid{grid-template-columns:1fr}}
+    .version-status{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}.update-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border:1px solid #28794b;border-radius:999px;background:#143b2a;color:#86efac;font-size:.75rem;text-decoration:none;white-space:nowrap}.update-badge[hidden]{display:none}.update-badge .button-icon{width:14px;height:14px}.update-badge:hover{background:#1a4b36;color:#bbf7d0}.update-badge:focus-visible{outline:3px solid #86efac;outline-offset:2px}.alert-success a{color:#86efac}
+    .logs-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px}.logs-toolbar .check-field{margin-right:auto}#logs-output{height:55vh;min-height:240px;overflow:auto;margin:14px 0 0;padding:14px;border:1px solid #3d3d3d;border-radius:8px;background:#111111;color:#d4d4d4;font:13px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}#logs-output:focus-visible{outline:3px solid #ffffff;outline-offset:2px}.logs-actions{display:flex;align-items:center;gap:12px;margin-left:auto}.logs-badge{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border:1px solid #525252;border-radius:999px;background:#292929;color:#b5b5b5;font-size:.8rem;white-space:nowrap}.logs-dot{width:7px;height:7px;border-radius:50%;background:currentColor}.logs-badge[data-live="true"]{border-color:#28794b;background:#143b2a;color:#86efac}.logs-badge[data-live="true"] .logs-dot{background:#4ade80;animation:logs-live-pulse 1.5s ease-out infinite}@keyframes logs-live-pulse{0%{box-shadow:0 0 0 0 #4ade8070}100%{box-shadow:0 0 0 6px #4ade8000}}@media(prefers-reduced-motion:reduce){.logs-badge[data-live="true"] .logs-dot{animation:none}}
+    .button-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    #game-connection{font-weight:700;color:#ef4444}#game-connection[data-connected="true"]{color:#22c55e}
   </style>
 </head>
 <body>
@@ -55,12 +60,13 @@
       </svg>
       <h1>PandaSimFlag</h1>
     </div>
-    <nav class="nav" aria-label="Main menu"><a href="#home" data-page="home" aria-current="page">Home</a><a href="#settings" data-page="settings">Settings</a></nav>
+    <nav class="nav" aria-label="Main menu"><a href="#home" data-page="home" aria-current="page">Home</a><a href="#info" data-page="info">Info</a><a href="#settings" data-page="settings">Settings</a></nav>
   </header>
 
   <div class="toast-stack">
     <div id="settings-toast" class="alert alert-success" role="status" aria-live="polite" aria-atomic="true" hidden><span id="toast-message"></span><button id="toast-close" class="toast-close" type="button" aria-label="Dismiss notification"><span id="toast-countdown" class="toast-countdown" aria-hidden="true" hidden><svg viewBox="0 0 36 36"><circle class="toast-countdown-track" cx="18" cy="18" r="15"></circle><circle id="toast-countdown-fill" class="toast-countdown-fill" cx="18" cy="18" r="15" pathLength="100"></circle></svg></span><svg class="toast-close-icon" viewBox="0 0 36 36" aria-hidden="true"><path d="M13 13L23 23M23 13L13 23"></path></svg></button></div>
     <div id="connected-notice" class="alert alert-info" role="status" hidden><span>Connected to your local Wi-Fi.<br>Open <a id="connected-host"></a></span><button id="connected-close" class="toast-close" type="button" aria-label="Dismiss network notice"><svg class="toast-close-icon" viewBox="0 0 36 36" aria-hidden="true"><path d="M13 13L23 23M23 13L13 23"></path></svg></button></div>
+    <div id="updates-toast" class="alert alert-success" role="status" aria-live="polite" hidden><span id="updates-toast-message"></span> <a id="updates-toast-link" target="_blank" rel="noopener noreferrer">View release</a><button id="updates-toast-close" class="toast-close" type="button" aria-label="Dismiss update notification"><svg class="toast-close-icon" viewBox="0 0 36 36" aria-hidden="true"><path d="M13 13L23 23M23 13L13 23"></path></svg></button></div>
   </div>
 
   <main id="home-page">
@@ -77,21 +83,7 @@
   <div class="home-status">
     <section class="card">
       <h2>Simulation status</h2>
-      <dl class="details"><dt>Mode</dt><dd id="mode">—</dd><dt>Current game</dt><dd id="game">Not reported</dd><dt>Matrix status</dt><dd id="matrix-status" role="status" aria-live="polite">Connecting to matrix…</dd></dl>
-    </section>
-    <section class="card">
-      <h2>Device status</h2>
-      <div class="status-groups">
-        <section class="status-group"><h3>Network</h3><dl class="details"><dt>Wi-Fi</dt><dd id="network">—</dd><dt>Signal strength</dt><dd id="signal">—</dd><dt>IP address</dt><dd id="ip">—</dd><dt>Hostname</dt><dd id="host">—</dd><dt>MAC address</dt><dd id="mac">—</dd></dl></section>
-        <section class="status-group"><h3>Device &amp; power</h3><dl class="details"><dt>Firmware version</dt><dd id="version">—</dd><dt>Filesystem version</dt><dd id="filesystem-version">—</dd><dt>USB power</dt><dd id="power">—</dd><dt>LED limit</dt><dd id="power-cap">—</dd><dt>Uptime</dt><dd id="uptime">—</dd></dl></section>
-      </div>
-    </section>
-
-  </div>
-  <div class="home-controls">
-    <section class="card">
-      <h2>Live matrix</h2>
-      <div class="matrix" id="matrix" role="img" aria-label="Live 8 by 8 LED matrix"></div>
+      <dl class="details"><dt>Connection</dt><dd id="game-connection" role="status" aria-live="polite" data-connected="false">Disconnected</dd><dt>Mode</dt><dd id="mode">—</dd><dt>Current game</dt><dd id="game">Not reported</dd><dt>Matrix status</dt><dd id="matrix-status" role="status" aria-live="polite">Connecting to matrix…</dd></dl>
     </section>
 
     <section class="card">
@@ -103,9 +95,103 @@
       </div>
       <div class="preview-actions"><button id="preview-button" class="primary" type="button" disabled>Show on matrix</button><button id="stop-preview-button" type="button" disabled>Stop</button></div>
     </section>
+  </div>
+  <div class="home-controls">
+    <section class="card">
+      <h2>Live matrix</h2>
+      <div class="matrix" id="matrix" role="img" aria-label="Live 8 by 8 LED matrix"></div>
+    </section>
+
+
 
   </div>
   </div>
+  </main>
+
+  <main id="info-page" hidden>
+    <div class="grid">
+      <section class="card settings-card" aria-labelledby="info-title">
+        <details id="info-details" class="settings-details" open>
+          <summary><span id="info-title">Device information</span><span class="expand-icon" aria-hidden="true"></span></summary>
+          <div class="settings-content">
+            <div class="info-toolbar"><button id="info-refresh" type="button"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 6.1A8 8 0 0 1 19.6 10M4.4 14a8 8 0 0 0 13.5 3.9"></path></svg>Refresh</button></div>
+            <p id="info-status" class="error" role="status" hidden></p>
+            <div class="info-grid">
+              <section class="status-group">
+                <h3>Board &amp; hardware</h3>
+                <dl class="details">
+                  <dt>Firmware target</dt><dd id="info-target">—</dd>
+                  <dt>PCB revision</dt><dd id="info-revision">—</dd>
+                  <dt>CPU cores</dt><dd id="info-cores">—</dd>
+                  <dt>Configured CPU speed</dt><dd id="info-cpu">—</dd>
+                  <dt>Detected flash size</dt><dd id="info-flash">—</dd>
+                </dl>
+              </section>
+              <section class="status-group">
+                <h3>Software</h3>
+                <dl class="details">
+                  <dt>Firmware version</dt><dd class="version-status"><span id="version">—</span><a id="firmware-update" class="update-badge" target="_blank" rel="noopener noreferrer" hidden><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"></path></svg>Update available</a></dd>
+                  <dt>Filesystem version</dt><dd class="version-status"><span id="filesystem-version">—</span><a id="filesystem-update" class="update-badge" target="_blank" rel="noopener noreferrer" hidden><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"></path></svg>Update available</a></dd>
+                </dl>
+              </section>
+              <section class="status-group">
+                <h3>Runtime &amp; memory</h3>
+                <dl class="details">
+                  <dt>Uptime</dt><dd id="uptime">—</dd>
+                  <dt>Last reset reason</dt><dd id="info-reset">—</dd>
+                  <dt>Free heap</dt><dd id="info-heap-free">—</dd>
+                  <dt>Minimum free heap</dt><dd id="info-heap-min">—</dd>
+                </dl>
+              </section>
+              <section class="status-group">
+                <h3>Network</h3>
+                <dl class="details">
+                  <dt>Mode</dt><dd id="network-mode">—</dd>
+                  <dt>Wi-Fi</dt><dd id="network">—</dd>
+                  <dt>Signal strength</dt><dd id="signal">—</dd>
+                  <dt>Hostname</dt><dd id="host">—</dd>
+                  <dt>IP address</dt><dd id="ip">—</dd>
+                  <dt>MAC address</dt><dd id="mac">—</dd>
+                </dl>
+              </section>
+              <section class="status-group">
+                <h3>USB &amp; matrix power</h3>
+                <dl class="details">
+                  <dt>USB power</dt><dd id="power">—</dd>
+                  <dt>LED limit</dt><dd id="power-cap">—</dd>
+                </dl>
+              </section>
+              <section class="status-group">
+                <h3>Matrix task</h3>
+                <dl class="details">
+                  <dt>Control core</dt><dd id="info-control-core">—</dd>
+                  <dt>Matrix core</dt><dd id="info-matrix-core">—</dd>
+                  <dt>Frames sent</dt><dd id="info-matrix-frames">—</dd>
+                  <dt>Free task stack</dt><dd id="info-matrix-stack">—</dd>
+                </dl>
+              </section>
+            </div>
+          </div>
+        </details>
+      </section>
+      <section class="card settings-card" aria-labelledby="logs-title">
+        <details id="logs-details" class="settings-details">
+          <summary><span id="logs-title">Logs</span><span class="expand-icon" aria-hidden="true"></span></summary>
+          <div class="settings-content">
+            <p class="muted">Recent device output from this boot. The device keeps the latest 8 KiB in memory; older output is overwritten and logs clear on restart.</p>
+            <div class="logs-toolbar">
+              <button id="logs-pause" type="button" aria-pressed="false">Pause</button>
+              <label class="check-field"><input id="logs-autoscroll" type="checkbox" checked>Auto-scroll</label>
+              <div class="logs-actions">
+                <span id="logs-status" class="logs-badge" role="status" data-live="false"><span class="logs-dot" aria-hidden="true"></span><span id="logs-status-label">Inactive</span></span>
+                <button id="logs-download" type="button">Download logs</button>
+              </div>
+            </div>
+            <pre id="logs-output" tabindex="0" aria-label="Device log output"></pre>
+          </div>
+        </details>
+      </section>
+    </div>
   </main>
 
   <main id="settings-page" hidden>
@@ -223,6 +309,7 @@
   </a></footer>
   <script>
     const $ = selector => document.querySelector(selector);
+    const setText = (selector, value) => { $(selector).textContent = value; };
     let settingsToastTimer;
     let settingsToastProgress;
     function clearSettingsToast() {
@@ -351,7 +438,7 @@
         animationTimer = setTimeout(step, state.period);
       };
       render();
-      if (state.animation !== 'none' && !document.hidden && location.hash !== '#settings') {
+      if (state.animation !== 'none' && !document.hidden && !$('#home-page').hidden) {
         animationTimer = setTimeout(step, state.remaining);
       }
     }
@@ -470,43 +557,261 @@
       }
     });
 
+    let installedVersions = {};
+    let latestRelease = null;
+    let updateCheckStarted = false;
+    let updateToastShown = false;
+
+    function parseVersion(value) {
+      if (typeof value !== 'string') return null;
+      const match = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.exec(value);
+      if (!match) return null;
+      if (match[4]?.split('.').some(part => /^0\d+$/.test(part))) return null;
+      const numbers = match.slice(1, 4).map(Number);
+      return numbers.every(Number.isSafeInteger) ? {numbers, prerelease: match[4] || ''} : null;
+    }
+
+    function isNewerVersion(candidate, installed) {
+      const next = parseVersion(candidate);
+      const current = parseVersion(installed);
+      if (!next || !current || next.prerelease) return false;
+      for (let index = 0; index < 3; index++) {
+        if (next.numbers[index] !== current.numbers[index]) return next.numbers[index] > current.numbers[index];
+      }
+      return Boolean(current.prerelease);
+    }
+
+    function showAvailableUpdates() {
+      const updates = {};
+      const tag = parseVersion(latestRelease?.tag_name);
+      if (tag && !tag.prerelease && !latestRelease.draft && !latestRelease.prerelease && Array.isArray(latestRelease.assets)) {
+        for (const asset of latestRelease.assets) {
+          if (!asset || asset.state !== 'uploaded' || !(asset.size > 0) || typeof asset.name !== 'string') continue;
+          const match = /^PandaSimFlag-(firmware|filesystem)-v(.+)-ota\.bin$/.exec(asset.name);
+          if (!match) continue;
+          const [, kind, version] = match;
+          if (isNewerVersion(version, installedVersions[kind]) && (!updates[kind] || isNewerVersion(version, updates[kind]))) {
+            updates[kind] = version;
+          }
+        }
+      }
+      const releaseUrl = tag ? `https://github.com/derDeno/PandaSimFlag/releases/tag/${encodeURIComponent(latestRelease.tag_name)}` : '';
+      for (const kind of ['firmware', 'filesystem']) {
+        const badge = $(`#${kind}-update`);
+        badge.hidden = !updates[kind];
+        if (updates[kind]) {
+          badge.href = releaseUrl;
+          badge.title = `${kind === 'firmware' ? 'Firmware' : 'Filesystem'} v${updates[kind]} is available`;
+        }
+      }
+      if (Object.keys(updates).length) {
+        setText('#updates-toast-message', `Update available: ${Object.entries(updates).map(([kind, version]) => `${kind} v${version}`).join(' and ')}.`);
+        $('#updates-toast-link').href = releaseUrl;
+        if (!updateToastShown) {
+          $('#updates-toast').hidden = false;
+          updateToastShown = true;
+        }
+      } else $('#updates-toast').hidden = true;
+    }
+
+    async function checkForUpdates() {
+      if (updateCheckStarted) return;
+      updateCheckStarted = true;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch('https://api.github.com/repos/derDeno/PandaSimFlag/releases/latest', {
+          headers: {Accept: 'application/vnd.github+json'}, credentials: 'omit', referrerPolicy: 'no-referrer',
+          cache: 'no-store', signal: controller.signal
+        });
+        if (!response.ok) return;
+        latestRelease = await response.json();
+        showAvailableUpdates();
+      } catch {
+        // Offline, timeouts and GitHub rate limits leave update indicators hidden until the next page load.
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function showDeviceStatus(state) {
+      const isAp = state.mode === 'ap';
+      setText('#network-mode', isAp ? 'Setup access point' : state.connected ? 'Connected' : 'Disconnected');
+      setText('#network', state.ssid || '—');
+      const signal = state.rssi >= -50 ? 'Excellent' : state.rssi >= -60 ? 'Good'
+        : state.rssi >= -70 ? 'Fair' : state.rssi >= -80 ? 'Weak' : 'Very weak';
+      setText('#signal', isAp ? 'Setup network' : state.connected && Number.isFinite(state.rssi) ? `${signal} (${state.rssi} dBm)` : '—');
+      setText('#host', state.hostname || '—');
+      setText('#ip', state.ip || '—');
+      setText('#mac', state.mac || '—');
+      setText('#version', state.version || 'unknown');
+      setText('#filesystem-version', state.filesystemVersion || 'unknown');
+      setText('#power', state.usbCurrentMode || '—');
+      setText('#power-cap', Number.isFinite(state.ledLimitMa) ? `${state.ledLimitMa} mA` : '—');
+      const uptime = Number.isFinite(state.uptime) && state.uptime >= 0 ? Math.floor(state.uptime) : null;
+      setText('#uptime', uptime === null ? '—' : `${Math.floor(uptime / 3600)}h ${Math.floor(uptime / 60) % 60}m ${uptime % 60}s`);
+      installedVersions = {firmware: state.version, filesystem: state.filesystemVersion};
+      showAvailableUpdates();
+    }
+
+    const deviceBusy = () => $('#update-dialog').open && $('#update-close').hidden;
+    function formatBytes(value) {
+      if (!Number.isFinite(value) || value < 0) return '—';
+      const unit = value >= 1048576 ? 'MiB' : 'KiB';
+      return `${(value / (unit === 'MiB' ? 1048576 : 1024)).toFixed(1)} ${unit}`;
+    }
+
+    function showSystemInfo(info) {
+      setText('#info-target', info.target || '—');
+      setText('#info-revision', info.pcb_revision || '—');
+      setText('#info-cores', Number.isInteger(info.cpu_cores) ? String(info.cpu_cores) : '—');
+      setText('#info-cpu', Number.isFinite(info.cpu_mhz) ? `${info.cpu_mhz} MHz` : '—');
+      setText('#info-flash', formatBytes(info.flash_bytes));
+      const resets = ['Unknown', 'Power on', 'External reset', 'Software restart', 'Panic / exception',
+        'Interrupt watchdog', 'Task watchdog', 'Other watchdog', 'Deep sleep wake', 'Brownout',
+        'SDIO reset', 'USB reset', 'JTAG reset', 'eFuse error', 'Power glitch', 'CPU lockup'];
+      setText('#info-reset', resets[info.reset_reason] || 'Unknown');
+      setText('#info-heap-free', formatBytes(info.heap_free_bytes));
+      setText('#info-heap-min', formatBytes(info.heap_min_free_bytes));
+      setText('#info-control-core', Number.isInteger(info.control_core) ? String(info.control_core) : '—');
+      setText('#info-matrix-core', Number.isInteger(info.matrix_core) && info.matrix_core >= 0 ? String(info.matrix_core) : '—');
+      setText('#info-matrix-frames', Number.isFinite(info.matrix_frames) ? String(info.matrix_frames) : '—');
+      setText('#info-matrix-stack', formatBytes(info.matrix_stack_free_bytes));
+    }
+
+    let infoBusy = false;
+    async function loadInfo() {
+      if (infoBusy || deviceBusy() || document.hidden || $('#info-page').hidden || !$('#info-details').open) return;
+      infoBusy = true;
+      $('#info-refresh').disabled = true;
+      $('#info-status').hidden = true;
+      setText('#info-status', '');
+      try {
+        const [infoResponse, stateResponse] = await Promise.all([
+          fetch('/api/info', {cache: 'no-store', signal: AbortSignal.timeout(3000)}), fetch('/api/state', {cache: 'no-store', signal: AbortSignal.timeout(3000)})
+        ]);
+        if (!infoResponse.ok || !stateResponse.ok) throw new Error('Information unavailable');
+        const [info, state] = await Promise.all([infoResponse.json(), stateResponse.json()]);
+        showSystemInfo(info);
+        showDeviceStatus(state);
+      } catch {
+        setText('#info-status', 'Device information unavailable. Try Refresh.');
+        $('#info-status').hidden = false;
+      } finally {
+        infoBusy = false;
+        $('#info-refresh').disabled = false;
+      }
+    }
+
+    let logCursor = '0';
+    let logBoot = '';
+    let logsPaused = false;
+    let logRequest;
+    let logTimer;
+
+    function logsActive() {
+      return ['#info', '#logs'].includes(location.hash) && $('#logs-details').open && !document.hidden && !logsPaused && !deviceBusy();
+    }
+
+    function scrollLogs() {
+      if ($('#logs-autoscroll').checked) $('#logs-output').scrollTop = $('#logs-output').scrollHeight;
+    }
+
+    function setLogStatus(label, live = false) {
+      if ($('#logs-status-label').textContent !== label) setText('#logs-status-label', label);
+      $('#logs-status').setAttribute('data-live', String(live));
+    }
+
+    async function refreshLogs() {
+      if (!logsActive() || logRequest) return;
+      clearTimeout(logTimer);
+      const controller = new AbortController();
+      logRequest = controller;
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const query = logBoot ? `?since=${logCursor}&boot=${logBoot}` : '';
+        const response = await fetch(`/api/logs${query}`, {cache: 'no-store', signal: controller.signal});
+        if (!response.ok) throw new Error('Logs unavailable');
+        const cursor = response.headers.get('X-Log-Cursor');
+        const boot = response.headers.get('X-Log-Boot');
+        if (!/^\d{1,20}$/.test(cursor || '') || !/^\d{1,10}$/.test(boot || '')) throw new Error('Invalid log response');
+        const text = await response.text();
+        if (controller.signal.aborted || !logsActive()) return;
+        const output = $('#logs-output');
+        if (logBoot && boot !== logBoot) output.textContent = '[Device restarted; previous logs cleared.]\n';
+        const gap = response.headers.get('X-Log-Dropped') === '1' ? '\n[Earlier log output was overwritten.]\n' : '';
+        // Bound browser memory too; render device text without interpreting HTML or terminal colours.
+        output.textContent = (output.textContent + gap + text.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')).slice(-32768);
+        logCursor = cursor;
+        logBoot = boot;
+        setLogStatus('Live', true);
+        scrollLogs();
+      } catch (error) {
+        if (logsActive()) setLogStatus('Retrying');
+      } finally {
+        clearTimeout(timeout);
+        logRequest = null;
+        if (logsActive()) logTimer = setTimeout(refreshLogs, 2000);
+      }
+    }
+
+    function syncLogPolling() {
+      clearTimeout(logTimer);
+      if (logsActive()) {
+        setLogStatus('Connecting');
+        refreshLogs();
+      } else {
+        logRequest?.abort();
+        setLogStatus(logsPaused ? 'Paused' : 'Inactive');
+      }
+    }
+
+    function toggleLogsPaused() {
+      logsPaused = !logsPaused;
+      setText('#logs-pause', logsPaused ? 'Resume' : 'Pause');
+      $('#logs-pause').setAttribute('aria-pressed', String(logsPaused));
+      syncLogPolling();
+    }
+
+    function downloadLogs() {
+      const url = URL.createObjectURL(new Blob([$('#logs-output').textContent], {type: 'text/plain;charset=utf-8'}));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'pandasimflag-logs.txt';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
     function showPage() {
-      const page = location.hash === '#settings' ? 'settings' : 'home';
+      const page = ['#info', '#logs'].includes(location.hash) ? 'info' : location.hash === '#settings' ? 'settings' : 'home';
       $('#home-page').hidden = page !== 'home';
+      $('#info-page').hidden = page !== 'info';
       $('#settings-page').hidden = page !== 'settings';
+      if (location.hash === '#logs') $('#logs-details').open = true;
       document.querySelectorAll('[data-page]').forEach(link => {
         if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
         else link.removeAttribute('aria-current');
       });
+      syncLogPolling();
+      if (page === 'info') loadInfo();
     }
 
     async function refresh(loadPage = false) {
-      if (refreshPending) return;
+      if (refreshPending || deviceBusy()) return;
       refreshPending = true;
       try {
         const response = await fetch(loadPage ? '/api/state' : '/api/matrix', {cache: 'no-store', signal: AbortSignal.timeout(2000)});
         if (!response.ok) throw new Error('Device status unavailable');
         const state = await response.json();
         if (loadPage) {
+          showDeviceStatus(state);
           const isAp = state.mode === 'ap';
           $('#setup-notice').hidden = !isAp;
           $('#connected-notice').hidden = !(!isAp && state.connected && location.hostname === state.ip);
-          $('#mode').textContent = state.connectionMode;
-          $('#game').textContent = state.game;
-          $('#network').textContent = state.ssid || '—';
           if (!$('#wifi-form').contains(document.activeElement)) {
             $('#ssid').value = isAp ? '' : state.ssid || '';
           }
-          $('#ip').textContent = state.ip || '—';
-          $('#host').textContent = state.hostname;
           $('#hostname-help').textContent = `Edit the .local address. Network device name: ${state.networkName}.`;
-          $('#signal').textContent = isAp ? 'Setup network' : `${state.rssi} dBm`;
-          $('#version').textContent = state.version;
-          $('#filesystem-version').textContent = state.filesystemVersion || 'unknown';
-          $('#power').textContent = state.usbCurrentMode;
-          $('#power-cap').textContent = `${state.ledLimitMa} mA`;
-          $('#uptime').textContent = `${Math.floor(state.uptime / 3600)}h ${Math.floor(state.uptime / 60) % 60}m`;
-          $('#mac').textContent = state.mac;
           if (!$('#device-form').contains(document.activeElement)) {
             $('#device-hostname').value = state.hostname;
             $('#connection-mode').value = state.inputMode;
@@ -541,6 +846,10 @@
         if (typeof state.gameSyncPaused !== 'boolean') {
           throw new Error('Update firmware to use the live matrix controls.');
         }
+        if (typeof state.connectionMode === 'string') setText('#mode', state.connectionMode);
+        if (typeof state.game === 'string') setText('#game', state.game);
+        setText('#game-connection', state.gameConnected ? 'Connected' : 'Waiting for data');
+        $('#game-connection').setAttribute('data-connected', String(Boolean(state.gameConnected)));
         gameSyncPaused = state.gameSyncPaused;
         orientationInProgress = Boolean(state.orientationActive);
         liveStateAvailable = true;
@@ -556,6 +865,8 @@
         clearTimeout(animationTimer);
         liveStateAvailable = false;
         matrix.classList.add('stale');
+        setText('#game-connection', 'Disconnected');
+        $('#game-connection').setAttribute('data-connected', 'false');
         $('#matrix-status').textContent = error.message === 'Update firmware to use the live matrix controls.'
           ? error.message : 'Device unavailable. Live view is stale; game sync may still be paused.';
       } finally {
@@ -856,21 +1167,31 @@
       }
     });
 
+    $('#info-refresh').addEventListener('click', loadInfo);
+    $('#info-details').addEventListener('toggle', loadInfo);
+    $('#logs-details').addEventListener('toggle', syncLogPolling);
+    $('#logs-pause').addEventListener('click', toggleLogsPaused);
+    $('#logs-autoscroll').addEventListener('change', scrollLogs);
+    $('#logs-download').addEventListener('click', downloadLogs);
+    $('#updates-toast-close').addEventListener('click', () => { $('#updates-toast').hidden = true; });
+    document.addEventListener('visibilitychange', syncLogPolling);
+    window.addEventListener('pagehide', () => { clearTimeout(logTimer); logRequest?.abort(); });
     window.addEventListener('hashchange', () => { showPage(); pollState(); });
     document.addEventListener('visibilitychange', pollState);
     showPage();
     async function pollState() {
       clearTimeout(pollTimer);
-      if (document.hidden || location.hash === '#settings') {
+      if (document.hidden || $('#home-page').hidden || deviceBusy()) {
         clearTimeout(animationTimer);
         return;
       }
       await refresh();
       clearTimeout(pollTimer);
-      if (!document.hidden && location.hash !== '#settings') {
+      if (!document.hidden && !$('#home-page').hidden) {
         pollTimer = setTimeout(pollState, pixelStream ? 100 : 250);
       }
     }
+    checkForUpdates();
     refresh(true).then(pollState);
   </script>
 </body>

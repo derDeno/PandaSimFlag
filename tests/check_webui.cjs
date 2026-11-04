@@ -220,9 +220,9 @@ async function main() {
     assert.equal(await page.locator('#matrix-rotation').textContent(), '270° clockwise');
     assert.equal(await page.locator('#led-power').inputValue(), '60');
     assert.equal(savedSettings.length, 0);
-    assert.equal(await page.locator('#device-message').textContent(), '');
-    assert.equal(await page.locator('#save-toast').textContent(), 'Matrix orientation saved.');
-    await page.waitForFunction(() => document.querySelector('#save-toast').textContent === '');
+    assert.equal(await page.locator('#device-message').count(), 0);
+    assert.equal(await page.locator('#toast-message').textContent(), 'Matrix orientation saved.');
+    await page.waitForFunction(() => document.querySelector('#toast-message').textContent === '');
 
     await page.locator('#orientation-adjust').click();
     await waitOrientation('270° clockwise');
@@ -264,7 +264,7 @@ async function main() {
     assistant = null;
 
     await page.locator('#device-submit').click();
-    await page.waitForFunction(() => document.querySelector('#save-toast').textContent.includes('saved'));
+    await page.waitForFunction(() => document.querySelector('#toast-message').textContent.includes('saved'));
     assert.equal(savedSettings.at(-1).hostname, 'my-flag');
     assert.equal('matrixRotation' in savedSettings.at(-1), false);
     await page.reload();
@@ -332,7 +332,7 @@ async function main() {
     await page.waitForTimeout(350);
     assert.equal(stateRequests, fullRequests);
     assert.equal(await page.locator('#game').textContent(), 'Not reported');
-    assert.equal(await page.locator('#signal').textContent(), '-50 dBm');
+    assert.equal(await page.locator('#signal').textContent(), 'Excellent (-50 dBm)');
 
     // Built-in animations continue between matrix responses, without RGB payloads.
     state.flag = 'green';
@@ -374,10 +374,10 @@ async function main() {
     await page.reload();
     await waitStatus('Game sync paused');
     assert.equal(await page.locator('#game').textContent(), 'Changed game');
-    assert.equal(await page.locator('#signal').textContent(), '-80 dBm');
+    assert.equal(await page.locator('#signal').textContent(), 'Weak (-80 dBm)');
     rejectCommand = true;
     await page.locator('#stop-preview-button').click();
-    await page.waitForFunction(() => document.querySelector('#home-message').textContent.includes('failed'));
+    await page.waitForFunction(() => document.querySelector('#toast-message').textContent.includes('failed'));
     await waitStatus('Game sync paused');
     assert.equal(await page.locator('#stop-preview-button').isEnabled(), true);
     rejectCommand = false;
